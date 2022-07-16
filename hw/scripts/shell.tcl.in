@@ -41,6 +41,11 @@ if {$cfg(en_pr) eq 1} {
     set_property "pr_flow" "1"                              $proj
 }
 
+if {$cfg(en_ipcache) eq 1} {
+    put "Set ipcache_dir to $cfg(ipcache_dir)"
+    config_ip_cache -use_cache_location $cfg(ipcache_dir)
+}
+
 puts "**** Project properties set"
 puts "****"
 
@@ -59,7 +64,7 @@ for {set i 0}  {$i < $cfg(n_config)} {incr i} {
 unset ::env(PYTHONPATH)
 unset ::env(PYTHONHOME)
 proc call_write_hdl {r_path} {
-    set output [exec /usr/bin/python3 "$r_path/write_hdl.py" 0 0]
+    set output [exec ${PYTHON_BIN} "$r_path/write_hdl.py" 0 0]
     puts $output
 }
 call_write_hdl $build_dir
@@ -171,9 +176,12 @@ if {$cfg(en_dcard) eq 1} {
 if {$cfg(en_hcard) eq 1} {
     if {$cfg(hbm_split) eq 1} {
       source "$scripts_dir/bd/cr_hbm_split.tcl" -notrace 
+    } elseif {$cfg(hbm_bpss) eq 1} {
+      source "$scripts_dir/bd/cr_hbm_bpss.tcl" -notrace
     } else {
-      source "$scripts_dir/bd/cr_hbm.tcl" -notrace 
+      source "$scripts_dir/bd/cr_hbm.tcl" -notrace
     }
+
     cr_bd_design_hbm ""
     set_property SYNTH_CHECKPOINT_MODE "Hierarchical" [get_files design_hbm.bd ]
 }

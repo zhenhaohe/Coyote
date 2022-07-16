@@ -99,9 +99,13 @@ set(EN_STRM 1 CACHE STRING "Enable host streams.")
 
 # Memory streams
 set(EN_MEM 0 CACHE STRING "Enable memory streams.")
+set(EN_MEM_BPSS 0 CACHE STRING "Expose memory interface to user logic.")
 
 # HBM split
 set(HBM_SPLIT 0 CACHE STRING "HBM bank splitting.")
+
+# HBM bypass
+set(HBM_BPSS 0 CACHE STRING "HBM bank bypassing (w/o rama ip).")
 
 # Memory channels
 set(N_DDR_CHAN 0 CACHE STRING "Number of DDR channels.")
@@ -169,6 +173,8 @@ set(TLBL_BITS 21 CACHE STRING "TLB (huge) page order")
 # TLB eviction
 set(EN_NRU 0 CACHE STRING "Enable NRU eviction policy")
 
+# DDR/HBM AXI params
+set(AXI_ID_BITS 1 CACHE STRING "Bitwidth of axi ar/aw_id")
 ##
 ## Examples
 ##
@@ -244,7 +250,7 @@ if(EN_TCP_0 OR EN_TCP_1)
     set(EN_TCP 1)
 else()
     # Mem
-    if(EN_MEM)
+    if(EN_MEM OR EN_MEM_BPSS)
         if(AV_DDR)
             set(EN_DCARD 1)
             set(EN_HCARD 0)
@@ -306,6 +312,7 @@ endif()
 
 # Total mem AXI channels
 set(N_MEM_CHAN 0)
+set(N_MEM_CHAN_USR ${N_MEM_CHAN})
 if(EN_MEM)
     MATH(EXPR N_MEM_CHAN "${N_REGIONS} + 1 + ${N_MEM_CHAN}")
 endif()
@@ -447,6 +454,24 @@ if(VITIS_HLS)
 else()
   message("** Vivado HLS flow")
 endif()
+
+# Set ip cache
+#
+set(EN_IPCACHE 0 CACHE STRING "Reuse ip cache for different builds")
+set(IPCACHE_DIR 0 CACHE STRING "Path of ip cache")
+string(FIND ${IPCACHE_DIR} "~" tmploc)
+if (EN_IPCACHE AND (NOT IS_ABSOLUTE ${IPCACHE_DIR} OR NOT tmploc EQUAL -1))
+    message(FATAL_ERROR "Ip cache path must be absolute, and NOT include symbol '~'.")
+endif()
+if (EN_IPCACHE AND NOT EXISTS ${IPCACHE_DIR})
+    file(MAKE_DIRECTORY ${IPCACHE_DIR})
+    message("Empty ipcache dir ${IPCACHE_DIR}")
+endif()
+
+#
+# Set Python dir
+#
+find_program(PYTHON_BIN python3)
 
 #
 # Configure files

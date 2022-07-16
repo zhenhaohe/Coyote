@@ -59,8 +59,7 @@ module top (
     wire [0:0] aresetn;
 
 {% if cnfg.en_hcard %}
-    wire hclk;
-    wire hresetn; 
+    wire hrefclk;
 {% endif %}
 
     // IRQ
@@ -366,7 +365,7 @@ module top (
         .axi_hbm_in_{{ i }}_arprot(axi_ddr_in[{{ i }}].arprot),
         .axi_hbm_in_{{ i }}_arqos(axi_ddr_in[{{ i }}].arqos),
         .axi_hbm_in_{{ i }}_arready(axi_ddr_in[{{ i }}].arready),
-        .axi_hbm_in_{{ i }}_arregion(axi_ddr_in[{{ i }}].arregion),
+        // .axi_hbm_in_{{ i }}_arregion(axi_ddr_in[{{ i }}].arregion),
         .axi_hbm_in_{{ i }}_arsize(axi_ddr_in[{{ i }}].arsize),
         .axi_hbm_in_{{ i }}_arvalid(axi_ddr_in[{{ i }}].arvalid),
         .axi_hbm_in_{{ i }}_awaddr(axi_ddr_in[{{ i }}].awaddr),
@@ -378,7 +377,7 @@ module top (
         .axi_hbm_in_{{ i }}_awprot(axi_ddr_in[{{ i }}].awprot),
         .axi_hbm_in_{{ i }}_awqos(axi_ddr_in[{{ i }}].awqos),
         .axi_hbm_in_{{ i }}_awready(axi_ddr_in[{{ i }}].awready),
-        .axi_hbm_in_{{ i }}_awregion(axi_ddr_in[{{ i }}].awregion),
+        // .axi_hbm_in_{{ i }}_awregion(axi_ddr_in[{{ i }}].awregion),
         .axi_hbm_in_{{ i }}_awsize(axi_ddr_in[{{ i }}].awsize),
         .axi_hbm_in_{{ i }}_awvalid(axi_ddr_in[{{ i }}].awvalid),
         .axi_hbm_in_{{ i }}_bid(axi_ddr_in[{{ i }}].bid),
@@ -397,9 +396,8 @@ module top (
         .axi_hbm_in_{{ i }}_wstrb(axi_ddr_in[{{ i }}].wstrb),
         .axi_hbm_in_{{ i }}_wvalid(axi_ddr_in[{{ i }}].wvalid),
     {% endfor %}
-        .hclk_int(),
-        .hclk(hclk),
-        .hresetn(hresetn),
+        .hrefclk(hrefclk),
+        .hrefresetn(lckresetn),
         .aclk(aclk),
         .aresetn(aresetn)
     );
@@ -432,12 +430,10 @@ module top (
     IBUFDS #(
         .IBUF_LOW_PWR("TRUE")     // Low power="TRUE", Highest performance="FALSE" 
     ) IBUFDS0_inst (
-        .O(hclk),  // Buffer output
+        .O(hrefclk),  // Buffer output
         .I(hbm_clk_clk_p),  // Diff_p buffer input (connect directly to top-level port)
         .IB(hbm_clk_clk_n) // Diff_n buffer input (connect directly to top-level port)
     );
-
-    assign hresetn = lckresetn;
 {% endif %}
 
     // -----------------------------------------------------------------

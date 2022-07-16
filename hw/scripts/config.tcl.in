@@ -60,3 +60,9 @@ set cfg(tlbs_bits)  ${TLBS_BITS}
 set cfg(en_nru)     ${EN_NRU}
 set cfg(en_rpc)     ${EN_RPC}
 set cfg(vit_hls)    ${VITIS_HLS}
+set cfg(en_ipcache)     ${EN_IPCACHE}
+set cfg(ipcache_dir)    ${IPCACHE_DIR}
+set cfg(axi_id_bits)    ${AXI_ID_BITS}
+set cfg(hbm_bpss)       ${HBM_BPSS}
+set cfg(en_mem_bpss)    ${EN_MEM_BPSS}
+set cfg(n_mem_chan_usr) ${N_MEM_CHAN_USR}

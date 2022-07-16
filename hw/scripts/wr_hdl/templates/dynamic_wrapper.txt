@@ -1144,6 +1144,49 @@ module design_dynamic_wrapper #(
         .axis_card_src_tready   (axis_card_out_dcpl[{{ i }}].tready),
         .axis_card_src_tvalid   (axis_card_out_dcpl[{{ i }}].tvalid),
 {% endif %}
+{% if cnfg.en_mem_bpss %}
+    {% for j in range(0, cnfg.n_mem_chan_usr) %}
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_araddr(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].araddr),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_arburst(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].arburst),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_arcache(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].arcache),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_arid(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].arid),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_arlen(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].arlen),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_arlock(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].arlock),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_arprot(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].arprot),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_arqos(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].arqos),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_arready(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].arready),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_arregion(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].arregion),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_arsize(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].arsize),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_arvalid(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].arvalid),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_awaddr(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].awaddr),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_awburst(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].awburst),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_awcache(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].awcache),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_awid(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].awid),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_awlen(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].awlen),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_awlock(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].awlock),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_awprot(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].awprot),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_awqos(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].awqos),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_awready(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].awready),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_awregion(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].awregion),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_awsize(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].awsize),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_awvalid(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].awvalid),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_bid(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].bid),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_bready(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].bready),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_bresp(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].bresp),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_bvalid(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].bvalid),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_rdata(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].rdata),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_rid(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].rid),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_rlast(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].rlast),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_rready(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].rready),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_rresp(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].rresp),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_rvalid(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].rvalid),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_wdata(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].wdata),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_wlast(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].wlast),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_wready(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].wready),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_wstrb(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].wstrb),
+        .axi_mem_{{ i*cnfg.n_mem_chan_usr+j }}_wvalid(m_axi_ddr[{{ i*cnfg.n_mem_chan_usr+j }}].wvalid),
+    {% endfor %}
+{% endif %}
 {% if cnfg.en_rdma_0 %}
         .rdma_0_rd_req_valid	(rdma_0_rd_req_dcpl[{{ i }}].valid),
         .rdma_0_rd_req_ready	(rdma_0_rd_req_dcpl[{{ i }}].ready),
@@ -1280,6 +1323,7 @@ module design_dynamic_wrapper #(
 {% else %}
         .aclk                   (aclk),
         .aresetn                (aresetn),
+{% endif %}
         .S_BSCAN_drck(),
         .S_BSCAN_shift(),
         .S_BSCAN_tdi(),
@@ -1291,8 +1335,7 @@ module design_dynamic_wrapper #(
         .S_BSCAN_runtest(),
         .S_BSCAN_reset(),
         .S_BSCAN_capture(),
-        .S_BSCAN_bscanid_en()  
-{% endif %}
+        .S_BSCAN_bscanid_en()
     );
 
 {% endfor %}
