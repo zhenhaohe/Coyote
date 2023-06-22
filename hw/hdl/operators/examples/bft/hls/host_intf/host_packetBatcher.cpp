@@ -50,13 +50,14 @@ typedef ap_axiu<DWIDTH32, 0, 0, 0> pkt32;
 typedef ap_axiu<DWIDTH16, 0, 0, 0> pkt16;
 typedef ap_axiu<DWIDTH8, 0, 0, 0> pkt8;
 
-#define MAX_PACKET_BATCH 8
+#define MAX_PACKET_BATCH 24
 #define MAX_BATCH_SIZE 4096
 
 // This is a batching module to group multiple messages to a large one
 // A header is inserted to encode information about the batching
 // The first 64-bit stores total payload size and number of messages being batched
-// Then the byte size of each message is included in the header with a 8*32 bit array
+// Then the byte size of each message is included in the header with a 24*16 bit array
+// The last 64-bit is reserved for tag/sequnce number
 
 void tx_cmd_handler(
                 hls::stream<ap_uint<64> >& netTxCmd_in,
@@ -76,7 +77,7 @@ void tx_cmd_handler(
     static ap_uint<32> cmd_dst;
     static ap_uint<32> cmd_length;
 
-    static ap_uint<32> lengthVec [MAX_PACKET_BATCH];
+    static ap_uint<16> lengthVec [MAX_PACKET_BATCH];
     #pragma HLS ARRAY_PARTITION variable=lengthVec complete
 
     enum StateType {INIT, BATCH};
@@ -108,7 +109,7 @@ void tx_cmd_handler(
                     for (int i = 0; i < MAX_PACKET_BATCH; i++)
                     {
                         #pragma HLS UNROLL
-                        headerWord(64+i*32+31, 64+i*32) = lengthVec[i];
+                        headerWord(64+i*16+15, 64+i*16) = lengthVec[i];
                         lengthVec[i] = 0;
                     }
                     headerInternal.write(headerWord);
@@ -168,7 +169,7 @@ void tx_cmd_handler(
                     for (int i = 0; i < MAX_PACKET_BATCH; i++)
                     {
                         #pragma HLS UNROLL
-                        headerWord(64+i*32+31, 64+i*32) = lengthVec[i];
+                        headerWord(64+i*16+15, 64+i*16) = lengthVec[i];
                         lengthVec[i] = 0;
                     }
                     headerInternal.write(headerWord);
@@ -257,11 +258,7 @@ void host_packetBatcher(
 #pragma HLS INTERFACE axis register  port=netTxData_in
 #pragma HLS INTERFACE axis register  port=netTxCmd_out
 #pragma HLS INTERFACE axis register  port=netTxData_out
-#if defined( __VITIS_HLS__)
-    #pragma HLS INTERFACE ap_none register port=batchMaxTimer
-#else
-    #pragma HLS INTERFACE ap_stable register port=batchMaxTimer
-#endif
+#pragma HLS INTERFACE ap_none register port=batchMaxTimer
 #pragma HLS INTERFACE ap_ctrl_none port=return
 
 #pragma HLS DATAFLOW disable_start_propagation

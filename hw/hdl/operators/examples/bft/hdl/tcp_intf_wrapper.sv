@@ -37,7 +37,7 @@ import lynxTypes::*;
  */
 module tcp_intf_wrapper (
     // control
-    input wire                  ap_start_pulse,
+    input wire                  ap_clr_pulse,
     input wire [63:0]           maxPkgWord,
 
     // User Interface
@@ -81,11 +81,11 @@ module tcp_intf_wrapper (
     input  wire[0:0]            aresetn
 );
 
-logic [0:0] ap_start_pulse_reg;
+logic [0:0] ap_clr_pulse_reg;
 logic [63:0] maxPkgWord_reg;
 
 always @(posedge aclk) begin
-	ap_start_pulse_reg <= ap_start_pulse;
+	ap_clr_pulse_reg <= ap_clr_pulse;
     maxPkgWord_reg <= maxPkgWord;
 end
 
@@ -198,7 +198,7 @@ inst_axis_tcp_0_sink_reg_array
 (
     .aclk(aclk), 
     .aresetn(aresetn), 
-    .ap_start_pulse(ap_start_pulse_reg),
+    .reset(ap_clr_pulse_reg),
     .s_axis(axis_tcp_0_sink), 
     .m_axis(axis_tcp_0_sink_reg), 
     .byte_cnt(consumed_bytes_network), 
@@ -215,7 +215,7 @@ inst_axis_tcp_0_src_reg_array
 (
     .aclk(aclk), 
     .aresetn(aresetn), 
-    .ap_start_pulse(ap_start_pulse_reg),
+    .reset(ap_clr_pulse_reg),
     .s_axis(axis_tcp_0_src_reg), 
     .m_axis(axis_tcp_0_src), 
     .byte_cnt(produced_bytes_network), 
@@ -310,7 +310,7 @@ always @( posedge aclk ) begin
         execution_cycles <= '0;
 	end
 	else begin
-		if (ap_start_pulse) begin
+		if (ap_clr_pulse) begin
 			tx_status_error_cnt <= '0;
             execution_cycles <= '0;
 		end

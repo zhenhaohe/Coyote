@@ -31,7 +31,7 @@ logic [63:0]    net_tx_cmd_error;
 logic [63:0]	maxPkgWord;
 logic [63:0]    batchMaxTimer;
 
-logic ap_start, ap_start_pulse;
+logic ap_clr, ap_clr_pulse;
 
 metaIntf #(.STYPE(logic [63:0])) buff_cmd();
 
@@ -80,7 +80,7 @@ host_intf_wrapper host_intf_wrapper_inst(
     .host2device(hostRxData),
 
     // Runtime Parameter
-    .ap_start_pulse(ap_start_pulse),
+    .ap_clr_pulse(ap_clr_pulse),
     .batchMaxTimer(batchMaxTimer),
     
     .buff_cmd(buff_cmd),
@@ -105,7 +105,7 @@ meta_reg_array #(.N_STAGES(5), .DATA_BITS(64)) inst_netTxMeta_reg_array (.aclk(a
 
 tcp_intf_wrapper tcp_intf_wrapper_inst(
     // control
-    .ap_start_pulse(ap_start_pulse),
+    .ap_clr_pulse(ap_clr_pulse),
     .maxPkgWord(maxPkgWord),
     
 
@@ -191,7 +191,7 @@ bft_coyote_bench_slave bft_coyote_bench_slave_inst (
 	.aclk         (aclk),
 	.aresetn      (aresetn),
 	.axi_ctrl     (axi_ctrl_cnfg),
-	.ap_start     (ap_start),
+	.ap_clr     (ap_clr),
 	.open_con_cmd_tdata (open_con_cmd.data), //[31:0] ip, [47:32] port
 	.open_con_cmd_tvalid (open_con_cmd.valid),
 	.open_con_cmd_tready (open_con_cmd.ready),
@@ -231,13 +231,13 @@ bft_coyote_bench_slave bft_coyote_bench_slave_inst (
     .net_tx_cmd_error(net_tx_cmd_error)
 );
 
-// create pulse when ap_start transitions to 1
-logic ap_start_r = 1'b0;
+// create pulse when ap_clr transitions to 1
+logic ap_clr_r = 1'b0;
 
 always @(posedge aclk) begin
   begin
-    ap_start_r <= ap_start;
+    ap_clr_r <= ap_clr;
   end
 end
 
-assign ap_start_pulse = ap_start & ~ap_start_r;
+assign ap_clr_pulse = ap_clr & ~ap_clr_r;

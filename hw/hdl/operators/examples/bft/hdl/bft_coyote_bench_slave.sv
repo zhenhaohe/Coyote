@@ -36,7 +36,7 @@ module bft_coyote_bench_slave (
 	
 	AXI4L.s                                       axi_ctrl,
 
-	output logic 									                ap_start,
+	output logic 									                ap_clr,
 	output logic [63:0]                           open_con_cmd_tdata, //[31:0] ip, [47:32] port
 	output logic                                  open_con_cmd_tvalid,
 	input logic                                   open_con_cmd_tready,
@@ -247,7 +247,7 @@ end
 
 // Output
 always_comb begin
-  ap_start = slv_reg[CONTROL][0];
+  ap_clr = slv_reg[CONTROL][0];
   open_con_cmd_tdata = slv_reg[OPEN_CON];
   open_port_cmd_tdata = slv_reg[OPEN_PORT][31:0];
   close_con_cmd_tdata = slv_reg[CLOSE_CON][31:0];

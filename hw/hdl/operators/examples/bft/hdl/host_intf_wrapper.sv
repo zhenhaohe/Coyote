@@ -53,7 +53,7 @@ module host_intf_wrapper (
     AXI4SR.m                        host2device,
 
     // Runtime Parameter
-	input wire [0:0]				ap_start_pulse,
+	input wire [0:0]				ap_clr_pulse,
 	input wire [63:0]				batchMaxTimer,
 
 	metaIntf.s 						buff_cmd,
@@ -71,11 +71,11 @@ module host_intf_wrapper (
     input  wire[0:0]                aresetn
 );
 
-logic [0:0]     ap_start_pulse_reg;
+logic [0:0]     ap_clr_pulse_reg;
 logic [63:0] 	batchMaxTimer_reg;
 
 always @(posedge aclk) begin
-	ap_start_pulse_reg <= ap_start_pulse;
+	ap_clr_pulse_reg <= ap_clr_pulse;
 	batchMaxTimer_reg <= batchMaxTimer;
 end
 
@@ -90,7 +90,7 @@ inst_axis_host_0_sink_reg_array
 (
     .aclk(aclk), 
     .aresetn(aresetn), 
-    .ap_start_pulse(ap_start_pulse_reg),
+    .reset(ap_clr_pulse_reg),
     .s_axis(axis_host_0_sink), 
     .m_axis(host2device), 
     .byte_cnt(consumed_bytes_host), 
@@ -211,7 +211,7 @@ host_wr_handler_ip host_wr_handler_inst(
 	.buff_cmd_TDATA(buff_cmd_q.data),
 	.buff_cmd_TVALID(buff_cmd_q.valid),
 	.buff_cmd_TREADY(buff_cmd_q.ready),
-  	.ap_start_pulse(ap_start_pulse_reg)
+  	.ap_clr_pulse(ap_clr_pulse_reg)
 );
 
 req_t req;
@@ -237,7 +237,7 @@ inst_axis_host_0_src_reg_array
 (
     .aclk(aclk), 
     .aresetn(aresetn), 
-    .ap_start_pulse(ap_start_pulse_reg),
+    .reset(ap_clr_pulse_reg),
     .s_axis(host_intf_wr), 
     .m_axis(axis_host_0_src),
     .byte_cnt(produced_bytes_host), 
