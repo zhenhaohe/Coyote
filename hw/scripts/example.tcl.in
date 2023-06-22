@@ -104,6 +104,18 @@ switch $cfg(example) {
         }
     }
 
+    "bft" {
+        puts "Coyote BFT."
+
+        source "$hw_dir/hdl/operators/examples/bft/scripts/tcp_intf_bd.tcl"
+
+        source "$hw_dir/hdl/operators/examples/bft/scripts/ip_inst.tcl"
+
+        # Add source files
+        add_files "$hw_dir/hdl/operators/examples/bft/hdl"  
+        update_compile_order -fileset sources_1
+    }
+
     default {
         puts "No example chosen"
     }
