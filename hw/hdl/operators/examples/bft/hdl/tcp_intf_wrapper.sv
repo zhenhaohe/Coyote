@@ -30,6 +30,7 @@
 `include "lynx_macros.svh"
 
 import lynxTypes::*;
+import bftTypes::*;
 
 /**
  * User logic
@@ -327,7 +328,6 @@ end
 
 assign net_tx_cmd_error = tx_status_error_cnt;
 
-`define ILA_TCP_DEBUG
 `ifdef ILA_TCP_DEBUG
 ila_tcp tcp_debug (
   .clk(aclk), // input wire clk

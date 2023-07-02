@@ -25,27 +25,16 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 `timescale 1ns / 1ps
-`default_nettype none
+import lynxTypes::*;
+import bftTypes::*;
 
 // Use the tuser side channel to distinguish whether input is key init stream or auth message stream
 // tusr - 0: auth message stream - 1: auth key init stream
-// the first word of the message is header, containing index(dst) information: | Payload | Header(64B) |
-// the output contains the encrypted message payload and the header | (De)Encrypted Payload | Header(64B) |
-// Assume the header has the following format and generate the meta information
-// struct headerType
-// {
-//     ap_uint<32> cmdID; // specifier of different communication primitive
-//     ap_uint<32> cmdLen; // total byte len of compulsory & optional cmd fields
-//     ap_uint<32> dst; // either dst rank or communicator ID depends on primitive
-//     ap_uint<32> src; // src rank
-//     ap_uint<32> tag; // tag, reserved
-//     ap_uint<32> dataLen; //total byte len of data to each primitive
-// };
-// The only important meta information is dst
+// the first word of the message contains header, containing index(dst) information: | Payload | Header |
+// the output contains the tag, message payload and the header | Auth | Payload | Header |
 
 module auth_role #( 
   parameter integer NUM_ENGINE = 4,
-  parameter integer OPERATION = 0, //--[0-cbc encryption, 1-cbc decryption, 2-gmac]
   parameter integer VERIFICATION = 0
 )
 (
@@ -330,7 +319,7 @@ generate
     for (i=0; i<NUM_ENGINE; i=i+1) begin : AUTH_PARALLEL_PIPE // <-- example block name
         auth_pipe #( 
             .PIPE_INDEX(i),
-            .OPERATION(OPERATION),
+            .DEBUG(DEBUG),
             .VERIFICATION(VERIFICATION)
         )auth_pipe(
             .aclk ( aclk ),
@@ -453,22 +442,19 @@ axis_data_fifo_width_512_depth_16 auth_role_output_fifo (
     .m_axis_tlast ( auth_out_tlast )
 );
 
-// localparam integer DEBUG = (VERIFICATION == 1);
-
-// if (DEBUG) begin
-//    ila_auth_role ila_auth_role
-//    (
-//        .clk(aclk), // input wire clk
-//        .probe0(m_axis_input_switch_tvalid),  //8
-//        .probe1(m_axis_input_switch_tready), //8
-//        .probe2(m_axis_input_switch_tlast), //8
-//        .probe3(m_axis_pipeline_tvalid),  //8
-//        .probe4(m_axis_pipeline_tready), //8
-//        .probe5(m_axis_pipeline_tlast), //8
-//        .probe6(output_pipe_index), //8
-//        .probe7(s_req_suppress) // 8
-//    );
-// end
+`ifdef DEBUG_AUTH_ROLE
+    ila_auth_role ila_auth_role
+    (
+        .clk(aclk), // input wire clk
+        .probe0(m_axis_input_switch_tvalid),  //8
+        .probe1(m_axis_input_switch_tready), //8
+        .probe2(m_axis_input_switch_tlast), //8
+        .probe3(m_axis_pipeline_tvalid),  //8
+        .probe4(m_axis_pipeline_tready), //8
+        .probe5(m_axis_pipeline_tlast), //8
+        .probe6(output_pipe_index), //8
+        .probe7(s_req_suppress) // 8
+    );
+`endif
 
 endmodule
-`default_nettype wire

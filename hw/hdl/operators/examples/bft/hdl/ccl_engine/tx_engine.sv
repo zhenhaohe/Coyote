@@ -25,7 +25,6 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 `timescale 1ns / 1ps
-`default_nettype none
 
 import lynxTypes::*;
 
@@ -236,4 +235,3 @@ axis_meta_fifo_width_128_depth_16 resp_fifo (
 //  ); 
 
 endmodule
-`default_nettype wire

@@ -1,30 +1,46 @@
 # ilas
+
+# ccl
+
 # create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_ccl
 # set_property -dict [list CONFIG.C_PROBE41_WIDTH {32} CONFIG.C_PROBE40_WIDTH {32} CONFIG.C_PROBE39_WIDTH {32} CONFIG.C_PROBE38_WIDTH {32} CONFIG.C_PROBE36_WIDTH {64} CONFIG.C_PROBE35_WIDTH {512} CONFIG.C_PROBE31_WIDTH {64} CONFIG.C_PROBE25_WIDTH {64} CONFIG.C_PROBE24_WIDTH {512} CONFIG.C_PROBE23_WIDTH {64} CONFIG.C_PROBE20_WIDTH {64} CONFIG.C_PROBE19_WIDTH {512} CONFIG.C_PROBE14_WIDTH {64} CONFIG.C_PROBE13_WIDTH {512} CONFIG.C_PROBE10_WIDTH {64} CONFIG.C_PROBE7_WIDTH {64} CONFIG.C_PROBE4_WIDTH {512} CONFIG.C_PROBE1_WIDTH {64} CONFIG.C_NUM_OF_PROBES {44} CONFIG.Component_Name {ila_ccl} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_ccl]
 # update_compile_order -fileset sources_1
 
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_tcp
-# set_property -dict [list CONFIG.C_PROBE43_WIDTH {16} CONFIG.C_PROBE43_WIDTH {32} CONFIG.C_PROBE42_WIDTH {16} CONFIG.C_PROBE41_WIDTH {32} CONFIG.C_PROBE38_WIDTH {128} CONFIG.C_PROBE32_WIDTH {32} CONFIG.C_PROBE29_WIDTH {16} CONFIG.C_PROBE26_WIDTH {16} CONFIG.C_PROBE25_WIDTH {16} CONFIG.C_PROBE19_WIDTH {32} CONFIG.C_PROBE16_WIDTH {64} CONFIG.C_PROBE10_WIDTH {16} CONFIG.C_PROBE6_WIDTH {16} CONFIG.C_PROBE3_WIDTH {16} CONFIG.C_PROBE2_WIDTH {32} CONFIG.C_NUM_OF_PROBES {45} CONFIG.Component_Name {ila_tcp} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_tcp]
-# update_compile_order -fileset sources_1
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_host
-# set_property -dict [list CONFIG.C_PROBE12_WIDTH {64} CONFIG.C_PROBE11_WIDTH {64} CONFIG.C_PROBE9_WIDTH {6} CONFIG.C_PROBE8_WIDTH {4} CONFIG.C_PROBE3_WIDTH {28} CONFIG.C_PROBE2_WIDTH {48} CONFIG.C_NUM_OF_PROBES {15} CONFIG.Component_Name {ila_host} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_host]
-# update_compile_order -fileset sources_1
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_aes_slave
-# set_property -dict [list  CONFIG.C_PROBE10_WIDTH {64} CONFIG.C_PROBE6_WIDTH {64} CONFIG.C_PROBE1_WIDTH {64} CONFIG.C_NUM_OF_PROBES {13} CONFIG.Component_Name {ila_aes_slave} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_aes_slave]
-# update_compile_order -fileset sources_1
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_aes_encrypt_bench
-# set_property -dict [list CONFIG.C_PROBE17_WIDTH {8} CONFIG.C_PROBE16_WIDTH {32} CONFIG.C_PROBE15_WIDTH {32} CONFIG.C_PROBE14_WIDTH {32} CONFIG.C_PROBE13_WIDTH {32} CONFIG.C_PROBE12_WIDTH {32} CONFIG.C_PROBE11_WIDTH {16} CONFIG.C_PROBE10_WIDTH {8}  CONFIG.C_NUM_OF_PROBES {24} CONFIG.Component_Name {ila_aes_encrypt_bench} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_aes_encrypt_bench]
-# update_compile_order -fileset sources_1
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_aes_role
-# set_property -dict [list  CONFIG.C_PROBE7_WIDTH {8} CONFIG.C_PROBE6_WIDTH {8} CONFIG.C_PROBE5_WIDTH {8} CONFIG.C_PROBE4_WIDTH {8} CONFIG.C_PROBE3_WIDTH {8} CONFIG.C_PROBE2_WIDTH {8} CONFIG.C_PROBE1_WIDTH {8} CONFIG.C_PROBE0_WIDTH {8} CONFIG.C_NUM_OF_PROBES {8} CONFIG.Component_Name {ila_aes_role} CONFIG.C_INPUT_PIPE_STAGES {2}] [get_ips ila_aes_role]
+create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_ccl_tx_engine
+set_property -dict [list CONFIG.C_NUM_OF_PROBES {14} CONFIG.Component_Name {ila_ccl_tx_engine} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_ccl_tx_engine]
+update_compile_order -fileset sources_1
 
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_aes_pipe
-# set_property -dict [list CONFIG.C_PROBE17_WIDTH {128} CONFIG.C_PROBE13_WIDTH {512} CONFIG.C_PROBE10_WIDTH {32} CONFIG.C_PROBE7_WIDTH {128} CONFIG.C_NUM_OF_PROBES {27} CONFIG.Component_Name {ila_aes_pipe} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_aes_pipe]
+# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_ccl_rx_engine
+# set_property -dict [list CONFIG.C_PROBE8_WIDTH {4} CONFIG.C_NUM_OF_PROBES {17} CONFIG.Component_Name {ila_ccl_rx_engine} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_ccl_rx_engine]
 # update_compile_order -fileset sources_1
 
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_aes_module
-# set_property -dict [list CONFIG.C_PROBE21_WIDTH {128} CONFIG.C_PROBE20_WIDTH {512} CONFIG.C_PROBE19_WIDTH {512} CONFIG.C_PROBE18_WIDTH {512} CONFIG.C_PROBE17_WIDTH {512} CONFIG.C_PROBE16_WIDTH {128} CONFIG.C_PROBE15_WIDTH {128} CONFIG.C_PROBE14_WIDTH {128} CONFIG.C_PROBE13_WIDTH {128} CONFIG.C_NUM_OF_PROBES {22} CONFIG.Component_Name {ila_aes_module} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_aes_module]
-# update_compile_order -fileset sources_1
+
+# tcp and host interfaces
+
+create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_tcp
+set_property -dict [list CONFIG.C_PROBE43_WIDTH {16} CONFIG.C_PROBE43_WIDTH {32} CONFIG.C_PROBE42_WIDTH {16} CONFIG.C_PROBE41_WIDTH {32} CONFIG.C_PROBE38_WIDTH {128} CONFIG.C_PROBE32_WIDTH {32} CONFIG.C_PROBE29_WIDTH {16} CONFIG.C_PROBE26_WIDTH {16} CONFIG.C_PROBE25_WIDTH {16} CONFIG.C_PROBE19_WIDTH {32} CONFIG.C_PROBE16_WIDTH {64} CONFIG.C_PROBE10_WIDTH {16} CONFIG.C_PROBE6_WIDTH {16} CONFIG.C_PROBE3_WIDTH {16} CONFIG.C_PROBE2_WIDTH {32} CONFIG.C_NUM_OF_PROBES {45} CONFIG.Component_Name {ila_tcp} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_tcp]
+update_compile_order -fileset sources_1
+
+create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_host
+set_property -dict [list CONFIG.C_PROBE12_WIDTH {64} CONFIG.C_PROBE11_WIDTH {64} CONFIG.C_PROBE9_WIDTH {6} CONFIG.C_PROBE8_WIDTH {4} CONFIG.C_PROBE3_WIDTH {28} CONFIG.C_PROBE2_WIDTH {48} CONFIG.C_NUM_OF_PROBES {15} CONFIG.Component_Name {ila_host} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_host]
+update_compile_order -fileset sources_1
+
+
+# auth ila
+create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_auth_role
+set_property -dict [list  CONFIG.C_PROBE7_WIDTH {8} CONFIG.C_PROBE6_WIDTH {8} CONFIG.C_PROBE5_WIDTH {8} CONFIG.C_PROBE4_WIDTH {8} CONFIG.C_PROBE3_WIDTH {8} CONFIG.C_PROBE2_WIDTH {8} CONFIG.C_PROBE1_WIDTH {8} CONFIG.C_PROBE0_WIDTH {8} CONFIG.C_NUM_OF_PROBES {8} CONFIG.Component_Name {ila_auth_role} CONFIG.C_INPUT_PIPE_STAGES {2}] [get_ips ila_auth_role]
+update_compile_order -fileset sources_1
+
+create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_auth_pipe
+set_property -dict [list CONFIG.C_PROBE14_WIDTH {512} CONFIG.C_PROBE13_WIDTH {256} CONFIG.C_PROBE10_WIDTH {64} CONFIG.C_PROBE3_WIDTH {512} CONFIG.C_NUM_OF_PROBES {18} CONFIG.Component_Name {ila_auth_pipe} CONFIG.C_INPUT_PIPE_STAGES {2}] [get_ips ila_auth_pipe]
+update_compile_order -fileset sources_1
+
+create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_auth_hmac
+set_property -dict [list CONFIG.C_PROBE16_WIDTH {32} CONFIG.C_PROBE15_WIDTH {64} CONFIG.C_PROBE14_WIDTH {32} CONFIG.C_PROBE13_WIDTH {256} CONFIG.C_NUM_OF_PROBES {18} CONFIG.Component_Name {ila_auth_hmac} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_auth_hmac]
+update_compile_order -fileset sources_1
+
+# sha
+
 # create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_sha_module
 # set_property -dict [list CONFIG.C_NUM_OF_PROBES {17} CONFIG.C_PROBE16_WIDTH {64} CONFIG.C_PROBE15_WIDTH {64} CONFIG.Component_Name {ila_sha_module} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_sha_module]
 # update_compile_order -fileset sources_1
@@ -39,42 +55,28 @@
 # create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_sha_256
 # set_property -dict [list CONFIG.C_NUM_OF_PROBES {61} CONFIG.Component_Name {ila_sha_256} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_sha_256]
 # update_compile_order -fileset sources_1
+
+
+# bft
+
+create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_cnfg_slave
+set_property -dict [list  CONFIG.C_PROBE1_WIDTH {64} CONFIG.C_PROBE6_WIDTH {64} CONFIG.C_PROBE9_WIDTH {64} CONFIG.C_PROBE12_WIDTH {64} CONFIG.C_PROBE15_WIDTH {64} CONFIG.C_PROBE18_WIDTH {16} CONFIG.C_PROBE21_WIDTH {72} CONFIG.C_PROBE24_WIDTH {8} CONFIG.C_PROBE25_WIDTH {8} CONFIG.C_NUM_OF_PROBES {26} CONFIG.Component_Name {ila_cnfg_slave} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_cnfg_slave]
+update_compile_order -fileset sources_1
+
 # create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_bft
 # set_property -dict [list CONFIG.C_NUM_OF_PROBES {18} CONFIG.C_PROBE3_WIDTH {512} CONFIG.C_PROBE4_WIDTH {64} CONFIG.C_PROBE5_WIDTH {4} CONFIG.C_PROBE8_WIDTH {512} CONFIG.C_PROBE9_WIDTH {64} CONFIG.C_PROBE13_WIDTH {64} CONFIG.Component_Name {ila_bft} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_bft]
+
 # create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_bft_role
 # set_property -dict [list CONFIG.C_NUM_OF_PROBES {21} CONFIG.C_PROBE3_WIDTH {512} CONFIG.C_PROBE4_WIDTH {64} CONFIG.C_PROBE7_WIDTH {512} CONFIG.C_PROBE8_WIDTH {64} CONFIG.C_PROBE12_WIDTH {64} CONFIG.C_PROBE15_WIDTH {512} CONFIG.C_PROBE18_WIDTH {512} CONFIG.C_PROBE19_WIDTH {64} CONFIG.Component_Name {ila_bft_role} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_bft_role]
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_bft_aesDec_sha_role
-# set_property -dict [list CONFIG.C_NUM_OF_PROBES {36} CONFIG.C_PROBE3_WIDTH {512} CONFIG.C_PROBE4_WIDTH {64} CONFIG.C_PROBE7_WIDTH {512} CONFIG.C_PROBE8_WIDTH {64} CONFIG.C_PROBE12_WIDTH {64} CONFIG.C_PROBE15_WIDTH {512} CONFIG.C_PROBE16_WIDTH {64} CONFIG.C_PROBE20_WIDTH {512} CONFIG.C_PROBE21_WIDTH {64} CONFIG.C_PROBE25_WIDTH {64} CONFIG.C_PROBE28_WIDTH {512} CONFIG.C_PROBE29_WIDTH {64} CONFIG.C_PROBE33_WIDTH {512} CONFIG.C_PROBE34_WIDTH {64} CONFIG.Component_Name {ila_bft_aesDec_sha_role} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_bft_aesDec_sha_role]
 
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_bft_aesEnc_sha_role
-# set_property -dict [list CONFIG.C_NUM_OF_PROBES {39} CONFIG.C_PROBE3_WIDTH {512} CONFIG.C_PROBE4_WIDTH {64} CONFIG.C_PROBE7_WIDTH {512} CONFIG.C_PROBE8_WIDTH {64} CONFIG.C_PROBE12_WIDTH {64} CONFIG.C_PROBE15_WIDTH {256} CONFIG.C_PROBE18_WIDTH {512} CONFIG.C_PROBE19_WIDTH {64} CONFIG.C_PROBE23_WIDTH {512} CONFIG.C_PROBE24_WIDTH {64} CONFIG.C_PROBE28_WIDTH {512} CONFIG.C_PROBE29_WIDTH {64} CONFIG.Component_Name {ila_bft_aesEnc_sha_role} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_bft_aesEnc_sha_role]
 
 # create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_bft_bench
 # set_property -dict [list CONFIG.C_NUM_OF_PROBES {16} CONFIG.C_PROBE11_WIDTH {32} CONFIG.C_PROBE12_WIDTH {32} CONFIG.C_PROBE13_WIDTH {32} CONFIG.C_PROBE14_WIDTH {32} CONFIG.C_PROBE15_WIDTH {32} CONFIG.Component_Name {ila_bft_bench} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_bft_bench]
 
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_ccl_slave
-# set_property -dict [list  CONFIG.C_PROBE1_WIDTH {64} CONFIG.C_PROBE6_WIDTH {64} CONFIG.C_PROBE9_WIDTH {64} CONFIG.C_PROBE12_WIDTH {64} CONFIG.C_PROBE15_WIDTH {64} CONFIG.C_PROBE18_WIDTH {64} CONFIG.C_PROBE21_WIDTH {72} CONFIG.C_PROBE24_WIDTH {8} CONFIG.C_PROBE25_WIDTH {8} CONFIG.C_NUM_OF_PROBES {26} CONFIG.Component_Name {ila_ccl_slave} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_ccl_slave]
-# update_compile_order -fileset sources_1
 
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_ccl_tx_engine
-# set_property -dict [list CONFIG.C_NUM_OF_PROBES {14} CONFIG.Component_Name {ila_ccl_tx_engine} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_ccl_tx_engine]
-# update_compile_order -fileset sources_1
 
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_ccl_rx_engine
-# set_property -dict [list CONFIG.C_PROBE8_WIDTH {4} CONFIG.C_NUM_OF_PROBES {17} CONFIG.Component_Name {ila_ccl_rx_engine} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_ccl_rx_engine]
-# update_compile_order -fileset sources_1
 
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_tlb_fsm_rd
-# set_property -dict [list CONFIG.C_PROBE11_WIDTH {4} CONFIG.C_PROBE10_WIDTH {6} CONFIG.C_PROBE9_WIDTH {4} CONFIG.C_PROBE4_WIDTH {28} CONFIG.C_PROBE3_WIDTH {48} CONFIG.C_PROBE0_WIDTH {4} CONFIG.C_NUM_OF_PROBES {12} CONFIG.Component_Name {ila_tlb_fsm_rd} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_tlb_fsm_rd]
-# update_compile_order -fileset sources_1
 
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_cnfg_slave_avx
-# set_property -dict [list CONFIG.C_PROBE11_WIDTH {4} CONFIG.C_PROBE10_WIDTH {6} CONFIG.C_PROBE9_WIDTH {4} CONFIG.C_PROBE4_WIDTH {28} CONFIG.C_PROBE3_WIDTH {48} CONFIG.C_PROBE0_WIDTH {4} CONFIG.C_NUM_OF_PROBES {12} CONFIG.Component_Name {ila_cnfg_slave_avx} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_cnfg_slave_avx]
-# update_compile_order -fileset sources_1
-
-# create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_top_shell
-# set_property -dict [list CONFIG.C_PROBE8_WIDTH {6} CONFIG.C_PROBE7_WIDTH {6} CONFIG.C_PROBE6_WIDTH {4} CONFIG.C_PROBE4_WIDTH {28} CONFIG.C_PROBE3_WIDTH {40} CONFIG.C_PROBE0_WIDTH {4} CONFIG.C_NUM_OF_PROBES {10} CONFIG.Component_Name {ila_top_shell} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_top_shell]
-# update_compile_order -fileset sources_1
 
 # data width converters
 create_ip -name axis_dwidth_converter -vendor xilinx.com -library ip -version 1.1 -module_name axis_dwidth_converter_512_to_128
@@ -83,8 +85,14 @@ set_property -dict [list CONFIG.S_TDATA_NUM_BYTES {64} CONFIG.M_TDATA_NUM_BYTES 
 create_ip -name axis_dwidth_converter -vendor xilinx.com -library ip -version 1.1 -module_name axis_dwidth_converter_512_to_64
 set_property -dict [list CONFIG.S_TDATA_NUM_BYTES {64} CONFIG.M_TDATA_NUM_BYTES {8} CONFIG.HAS_TLAST {1} CONFIG.HAS_TKEEP {1} CONFIG.HAS_MI_TKEEP {1} CONFIG.Component_Name {axis_dwidth_converter_512_to_64}] [get_ips axis_dwidth_converter_512_to_64]
 
+create_ip -name axis_dwidth_converter -vendor xilinx.com -library ip -version 1.1 -module_name axis_dwidth_converter_512_to_32
+set_property -dict [list CONFIG.S_TDATA_NUM_BYTES {64} CONFIG.M_TDATA_NUM_BYTES {4} CONFIG.HAS_TLAST {1} CONFIG.HAS_TKEEP {1} CONFIG.HAS_MI_TKEEP {1} CONFIG.Component_Name {axis_dwidth_converter_512_to_32}] [get_ips axis_dwidth_converter_512_to_32]
+
 create_ip -name axis_dwidth_converter -vendor xilinx.com -library ip -version 1.1 -module_name axis_dwidth_converter_256_to_64
 set_property -dict [list CONFIG.S_TDATA_NUM_BYTES {32} CONFIG.M_TDATA_NUM_BYTES {8} CONFIG.HAS_TLAST {1} CONFIG.HAS_TKEEP {1} CONFIG.HAS_MI_TKEEP {1} CONFIG.Component_Name {axis_dwidth_converter_256_to_64}] [get_ips axis_dwidth_converter_256_to_64]
+
+create_ip -name axis_dwidth_converter -vendor xilinx.com -library ip -version 1.1 -module_name axis_dwidth_converter_32_to_512
+set_property -dict [list CONFIG.S_TDATA_NUM_BYTES {4} CONFIG.M_TDATA_NUM_BYTES {64} CONFIG.HAS_TLAST {1} CONFIG.HAS_TKEEP {1} CONFIG.HAS_MI_TKEEP {1} CONFIG.Component_Name {axis_dwidth_converter_32_to_512}] [get_ips axis_dwidth_converter_32_to_512]
 
 create_ip -name axis_dwidth_converter -vendor xilinx.com -library ip -version 1.1 -module_name axis_dwidth_converter_64_to_512
 set_property -dict [list CONFIG.S_TDATA_NUM_BYTES {8} CONFIG.M_TDATA_NUM_BYTES {64} CONFIG.HAS_TLAST {1} CONFIG.HAS_TKEEP {1} CONFIG.HAS_MI_TKEEP {1} CONFIG.Component_Name {axis_dwidth_converter_64_to_512}] [get_ips axis_dwidth_converter_64_to_512]
@@ -92,18 +100,12 @@ set_property -dict [list CONFIG.S_TDATA_NUM_BYTES {8} CONFIG.M_TDATA_NUM_BYTES {
 create_ip -name axis_dwidth_converter -vendor xilinx.com -library ip -version 1.1 -module_name axis_dwidth_converter_128_to_512
 set_property -dict [list CONFIG.S_TDATA_NUM_BYTES {16} CONFIG.M_TDATA_NUM_BYTES {64} CONFIG.HAS_TLAST {1} CONFIG.HAS_TKEEP {1} CONFIG.HAS_MI_TKEEP {1} CONFIG.Component_Name {axis_dwidth_converter_128_to_512}] [get_ips axis_dwidth_converter_128_to_512]
 
-create_ip -name axis_dwidth_converter -vendor xilinx.com -library ip -version 1.1 -module_name axis_dwidth_converter_512_to_2048
-set_property -dict [list CONFIG.S_TDATA_NUM_BYTES {64} CONFIG.M_TDATA_NUM_BYTES {256} CONFIG.HAS_TLAST {1} CONFIG.HAS_TKEEP {1} CONFIG.HAS_MI_TKEEP {1} CONFIG.Component_Name {axis_dwidth_converter_512_to_2048}] [get_ips axis_dwidth_converter_512_to_2048]
-
 # axis switches
 create_ip -name axis_switch -vendor xilinx.com -library ip -version 1.1 -module_name axis_switch_width_512_1_to_2
 set_property -dict [list CONFIG.NUM_SI {1} CONFIG.NUM_MI {2} CONFIG.TDATA_NUM_BYTES {64} CONFIG.HAS_TKEEP {1} CONFIG.HAS_TLAST {1} CONFIG.TDEST_WIDTH {1} CONFIG.DECODER_REG {1} CONFIG.Component_Name {axis_switch_width_512_1_to_2}] [get_ips axis_switch_width_512_1_to_2]
 
 create_ip -name axis_switch -vendor xilinx.com -library ip -version 1.1 -module_name axis_switch_width_512_1_to_4
 set_property -dict [list CONFIG.NUM_SI {1} CONFIG.NUM_MI {4} CONFIG.TDATA_NUM_BYTES {64} CONFIG.HAS_TKEEP {1} CONFIG.HAS_TLAST {1} CONFIG.TDEST_WIDTH {2} CONFIG.DECODER_REG {1} CONFIG.Component_Name {axis_switch_width_512_1_to_4}] [get_ips axis_switch_width_512_1_to_4]
-
-create_ip -name axis_switch -vendor xilinx.com -library ip -version 1.1 -module_name axis_switch_width_512_1_to_5
-set_property -dict [list CONFIG.NUM_SI {1} CONFIG.NUM_MI {5} CONFIG.TDATA_NUM_BYTES {64} CONFIG.HAS_TKEEP {1} CONFIG.HAS_TLAST {1} CONFIG.TDEST_WIDTH {3} CONFIG.DECODER_REG {1} CONFIG.Component_Name {axis_switch_width_512_1_to_5}] [get_ips axis_switch_width_512_1_to_5]
 
 create_ip -name axis_switch -vendor xilinx.com -library ip -version 1.1 -module_name axis_switch_width_512_1_to_8
 set_property -dict [list CONFIG.NUM_SI {1} CONFIG.NUM_MI {8} CONFIG.TDATA_NUM_BYTES {64} CONFIG.HAS_TKEEP {1} CONFIG.HAS_TLAST {1} CONFIG.TDEST_WIDTH {3} CONFIG.DECODER_REG {1} CONFIG.Component_Name {axis_switch_width_512_1_to_8}] [get_ips axis_switch_width_512_1_to_8]
@@ -293,101 +295,71 @@ set_property -dict [list CONFIG.NUM_SI {1} CONFIG.NUM_MI {2} CONFIG.ADDR_WIDTH {
 
 
 # user ips
+
+# host/tcp interfaces
 create_ip -name host_packetBatcher -vendor ethz.systems.fpga -library hls -version 1.0 -module_name host_packetBatcher_ip
 set_property -dict [list CONFIG.Component_Name {host_packetBatcher_ip}] [get_ips host_packetBatcher_ip]
 
 create_ip -name tcp_intf -vendor ethz.systems.fpga -library hls -version 1.0 -module_name tcp_intf_ip
 set_property -dict [list CONFIG.Component_Name {tcp_intf_ip}] [get_ips tcp_intf_ip]
 
-# create_ip -name communicator -vendor xilinx.com -library hls -version 1.0 -module_name communicator_ip
-# set_property -dict [list CONFIG.Component_Name {communicator_ip}] [get_ips communicator_ip]
+create_ip -name host_wr_handler -vendor ethz.systems.fpga -library hls -version 1.0 -module_name host_wr_handler_ip
+set_property -dict [list CONFIG.Component_Name {host_wr_handler_ip}] [get_ips host_wr_handler_ip]
 
-# create_ip -name bft_shift_alignment -vendor xilinx.com -library hls -version 1.0 -module_name bft_shift_alignment_ip
-# set_property -dict [list CONFIG.Component_Name {bft_shift_alignment_ip}] [get_ips bft_shift_alignment_ip]
+# ccl engine
 
-# create_ip -name bft_bcast_scatter -vendor xilinx.com -library hls -version 1.0 -module_name bft_bcast_scatter_ip
-# set_property -dict [list CONFIG.Component_Name {bft_bcast_scatter_ip}] [get_ips bft_bcast_scatter_ip]
+create_ip -name communicator -vendor ethz.systems.fpga -library hls -version 1.0 -module_name communicator_ip
+set_property -dict [list CONFIG.Component_Name {communicator_ip}] [get_ips communicator_ip]
 
-# create_ip -name host_wr_handler -vendor xilinx.com -library hls -version 1.0 -module_name host_wr_handler_ip
-# set_property -dict [list CONFIG.Component_Name {host_wr_handler_ip}] [get_ips host_wr_handler_ip]
+create_ip -name txEngine -vendor ethz.systems.fpga -library hls -version 1.0 -module_name txEngine_ip
+set_property -dict [list CONFIG.Component_Name {txEngine_ip}] [get_ips txEngine_ip]
 
-# create_ip -name host_packetizer -vendor xilinx.com -library hls -version 1.0 -module_name host_packetizer_ip
-# set_property -dict [list CONFIG.Component_Name {host_packetizer_ip}] [get_ips host_packetizer_ip]
+# bft role
 
-# create_ip -name txEngine -vendor xilinx.com -library hls -version 1.0 -module_name txEngine_ip
-# set_property -dict [list CONFIG.Component_Name {txEngine_ip}] [get_ips txEngine_ip]
+create_ip -name bft_depacketizer -vendor ethz.systems.fpga -library hls -version 1.0 -module_name bft_depacketizer_ip
+set_property -dict [list CONFIG.Component_Name {bft_depacketizer_ip}] [get_ips bft_depacketizer_ip]
 
-# create_ip -name msgMetaGen -vendor xilinx.com -library hls -version 1.0 -module_name msgMetaGen_ip
-# set_property -dict [list CONFIG.Component_Name {msgMetaGen_ip}] [get_ips msgMetaGen_ip]
+create_ip -name bft_packetizer -vendor ethz.systems.fpga -library hls -version 1.0 -module_name bft_packetizer_ip
+set_property -dict [list CONFIG.Component_Name {bft_packetizer_ip}] [get_ips bft_packetizer_ip]
 
-# create_ip -name pktMultiplexor -vendor xilinx.com -library hls -version 1.0 -module_name pktMultiplexor_ip
-# set_property -dict [list CONFIG.Component_Name {pktMultiplexor_ip}] [get_ips pktMultiplexor_ip]
+create_ip -name bft_bcast -vendor ethz.systems.fpga -library hls -version 1.0 -module_name bft_bcast_ip
+set_property -dict [list CONFIG.Component_Name {bft_bcast_ip}] [get_ips bft_bcast_ip]
 
-# create_ip -name tcp_intf -vendor user.org -library user -version 1.0 -module_name tcp_intf_ip
-# set_property -dict [list CONFIG.Component_Name {tcp_intf_ip}] [get_ips tcp_intf_ip]
+create_ip -name bft_mux -vendor ethz.systems.fpga -library hls -version 1.0 -module_name bft_mux_ip
+set_property -dict [list CONFIG.Component_Name {bft_mux_ip}] [get_ips bft_mux_ip]
 
-# create_ip -name aes_key_handler -vendor xilinx.com -library hls -version 1.0 -module_name aes_key_handler_ip
-# set_property -dict [list CONFIG.Component_Name {aes_key_handler_ip}] [get_ips aes_key_handler_ip]
+create_ip -name bft_meta_gen -vendor ethz.systems.fpga -library hls -version 1.0 -module_name bft_meta_gen_ip
+set_property -dict [list CONFIG.Component_Name {bft_meta_gen_ip}] [get_ips bft_meta_gen_ip]
 
-# create_ip -name aes_header_payload_merger -vendor xilinx.com -library hls -version 1.0 -module_name aes_header_payload_merger_ip
-# set_property -dict [list CONFIG.Component_Name {aes_header_payload_merger_ip}] [get_ips aes_header_payload_merger_ip]
+create_ip -name bft_arbiter -vendor ethz.systems.fpga -library hls -version 1.0 -module_name bft_arbiter_ip
+set_property -dict [list CONFIG.Component_Name {bft_arbiter_ip}] [get_ips bft_arbiter_ip]
 
-# create_ip -name aes_msgMetaGen -vendor xilinx.com -library hls -version 1.0 -module_name aes_msgMetaGen_ip
-# set_property -dict [list CONFIG.Component_Name {aes_msgMetaGen_ip}] [get_ips aes_msgMetaGen_ip]
 
-# create_ip -name aes_key_bcast_handler -vendor xilinx.com -library hls -version 1.0 -module_name aes_key_bcast_handler_ip
-# set_property -dict [list CONFIG.Component_Name {aes_key_bcast_handler_ip}] [get_ips aes_key_bcast_handler_ip]
+# common
+create_ip -name append_stream_64 -vendor ethz.systems.fpga -library hls -version 1.0 -module_name append_stream_64_ip
+set_property -dict [list CONFIG.Component_Name {append_stream_64_ip}] [get_ips append_stream_64_ip]
 
-# create_ip -name sha_pipe_input_splitter -vendor xilinx.com -library hls -version 1.0 -module_name sha_pipe_input_splitter_ip
-# set_property -dict [list CONFIG.Component_Name {sha_pipe_input_splitter_ip}] [get_ips sha_pipe_input_splitter_ip]
+create_ip -name duplicate_stream_64 -vendor ethz.systems.fpga -library hls -version 1.0 -module_name duplicate_stream_64_ip
+set_property -dict [list CONFIG.Component_Name {duplicate_stream_64_ip}] [get_ips duplicate_stream_64_ip]
 
-# create_ip -name sha_pipe_output_merger -vendor xilinx.com -library hls -version 1.0 -module_name sha_pipe_output_merger_ip
-# set_property -dict [list CONFIG.Component_Name {sha_pipe_output_merger_ip}] [get_ips sha_pipe_output_merger_ip]
+create_ip -name duplicate_meta_64 -vendor ethz.systems.fpga -library hls -version 1.0 -module_name duplicate_meta_64_ip
+set_property -dict [list CONFIG.Component_Name {duplicate_meta_64_ip}] [get_ips duplicate_meta_64_ip]
 
-# create_ip -name sha_input_handler -vendor xilinx.com -library hls -version 1.0 -module_name sha_input_handler_ip
-# set_property -dict [list CONFIG.Component_Name {sha_input_handler_ip}] [get_ips sha_input_handler_ip]
+create_ip -name duplicate_meta_32 -vendor ethz.systems.fpga -library hls -version 1.0 -module_name duplicate_meta_32_ip
+set_property -dict [list CONFIG.Component_Name {duplicate_meta_32_ip}] [get_ips duplicate_meta_32_ip]
 
-# create_ip -name bft_aesDec_sha_postproc -vendor xilinx.com -library hls -version 1.0 -module_name bft_aesDec_sha_postproc_ip
-# set_property -dict [list CONFIG.Component_Name {bft_aesDec_sha_postproc_ip}] [get_ips bft_aesDec_sha_postproc_ip]
 
-# create_ip -name bft_aesDec_sha_preproc -vendor xilinx.com -library hls -version 1.0 -module_name bft_aesDec_sha_preproc_ip
-# set_property -dict [list CONFIG.Component_Name {bft_aesDec_sha_preproc_ip}] [get_ips bft_aesDec_sha_preproc_ip]
+# auth ips
 
-# create_ip -name bft_aesDec_sha_validation -vendor xilinx.com -library hls -version 1.0 -module_name bft_aesDec_sha_validation_ip
-# set_property -dict [list CONFIG.Component_Name {bft_aesDec_sha_validation_ip}] [get_ips bft_aesDec_sha_validation_ip]
+create_ip -name auth_key_handler -vendor ethz.systems.fpga -library hls -version 1.0 -module_name auth_key_handler_ip
+set_property -dict [list CONFIG.Component_Name {auth_key_handler_ip}] [get_ips auth_key_handler_ip]
 
-# create_ip -name bft_aesEnc_sha_bcast_scatter -vendor xilinx.com -library hls -version 1.0 -module_name bft_aesEnc_sha_bcast_scatter_ip
-# set_property -dict [list CONFIG.Component_Name {bft_aesEnc_sha_bcast_scatter_ip}] [get_ips bft_aesEnc_sha_bcast_scatter_ip]
+create_ip -name auth_pipe_out_handler -vendor ethz.systems.fpga -library hls -version 1.0 -module_name auth_pipe_out_handler_ip
+set_property -dict [list CONFIG.Component_Name {auth_pipe_out_handler_ip}] [get_ips auth_pipe_out_handler_ip]
 
-# create_ip -name bft_aesEnc_sha_preproc -vendor xilinx.com -library hls -version 1.0 -module_name bft_aesEnc_sha_preproc_ip
-# set_property -dict [list CONFIG.Component_Name {bft_aesEnc_sha_preproc_ip}] [get_ips bft_aesEnc_sha_preproc_ip]
+create_ip -name hmac_eLen_handler -vendor ethz.systems.fpga -library hls -version 1.0 -module_name hmac_eLen_handler_ip
+set_property -dict [list CONFIG.Component_Name {hmac_eLen_handler_ip}] [get_ips hmac_eLen_handler_ip]
 
-# create_ip -name bft_aesEnc_sha_scatter -vendor xilinx.com -library hls -version 1.0 -module_name bft_aesEnc_sha_scatter_ip
-# set_property -dict [list CONFIG.Component_Name {bft_aesEnc_sha_scatter_ip}] [get_ips bft_aesEnc_sha_scatter_ip]
+create_ip -name auth_key_bcast_handler -vendor ethz.systems.fpga -library hls -version 1.0 -module_name auth_key_bcast_handler_ip
+set_property -dict [list CONFIG.Component_Name {auth_key_bcast_handler_ip}] [get_ips auth_key_bcast_handler_ip]
 
-# create_ip -name bft_aesEnc_sha_shift_alignment -vendor xilinx.com -library hls -version 1.0 -module_name bft_aesEnc_sha_shift_alignment_ip
-# set_property -dict [list CONFIG.Component_Name {bft_aesEnc_sha_shift_alignment_ip}] [get_ips bft_aesEnc_sha_shift_alignment_ip]
-
-# create_ip -name sha_duplicate_stream -vendor xilinx.com -library hls -version 1.0 -module_name sha_duplicate_stream_ip
-# set_property -dict [list CONFIG.Component_Name {sha_duplicate_stream_ip}] [get_ips sha_duplicate_stream_ip]
-
-# create_ip -name sha_merge_stream -vendor xilinx.com -library hls -version 1.0 -module_name sha_merge_stream_ip
-# set_property -dict [list CONFIG.Component_Name {sha_merge_stream_ip}] [get_ips sha_merge_stream_ip]
-
-# create_ip -name sha_header_handler -vendor xilinx.com -library hls -version 1.0 -module_name sha_header_handler_ip
-# set_property -dict [list CONFIG.Component_Name {sha_header_handler_ip}] [get_ips sha_header_handler_ip]
-
-# create_ip -name sha_bit_padding -vendor xilinx.com -library hls -version 1.0 -module_name sha_bit_padding_ip
-# set_property -dict [list CONFIG.Component_Name {sha_bit_padding_ip}] [get_ips sha_bit_padding_ip]
-
-# create_ip -name bft_aesEnc_sha_header_insert -vendor xilinx.com -library hls -version 1.0 -module_name bft_aesEnc_sha_header_insert_ip
-# set_property -dict [list CONFIG.Component_Name {bft_aesEnc_sha_header_insert_ip}] [get_ips bft_aesEnc_sha_header_insert_ip]
-
-# create_ip -name bft_aesEnc_sha_header_remove -vendor xilinx.com -library hls -version 1.0 -module_name bft_aesEnc_sha_header_remove_ip
-# set_property -dict [list CONFIG.Component_Name {bft_aesEnc_sha_header_remove_ip}] [get_ips bft_aesEnc_sha_header_remove_ip]
-
-# create_ip -name bft_aesDec_sha_header_insert -vendor xilinx.com -library hls -version 1.0 -module_name bft_aesDec_sha_header_insert_ip
-# set_property -dict [list CONFIG.Component_Name {bft_aesDec_sha_header_insert_ip}] [get_ips bft_aesDec_sha_header_insert_ip]
-
-# create_ip -name bft_aesDec_sha_header_remove -vendor xilinx.com -library hls -version 1.0 -module_name bft_aesDec_sha_header_remove_ip
-# set_property -dict [list CONFIG.Component_Name {bft_aesDec_sha_header_remove_ip}] [get_ips bft_aesDec_sha_header_remove_ip]

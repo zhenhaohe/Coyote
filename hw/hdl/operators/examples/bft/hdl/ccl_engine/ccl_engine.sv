@@ -25,7 +25,6 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 `timescale 1ns / 1ps
-`default_nettype none
 
 import lynxTypes::*;
 
@@ -162,4 +161,3 @@ communicator_ip communicator_ip_inst (
 
 
 endmodule
-`default_nettype wire

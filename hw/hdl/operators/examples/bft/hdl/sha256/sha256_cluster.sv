@@ -25,7 +25,6 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 `timescale 1ns / 1ps
-`default_nettype none
 
 `include "axi_macros.svh"
 `include "lynx_macros.svh"
@@ -34,7 +33,6 @@ import lynxTypes::*;
 
 module sha256_cluster #( 
     parameter integer NUM_ENGINE = 8,
-    parameter integer SHA_MODULE_VERSION = 0,
     parameter integer DEBUG = 0
 )
 (
@@ -380,4 +378,3 @@ axis_data_fifo_width_512_depth_128 sha256_output_fifo (
 
 
 endmodule
-`default_nettype wire

@@ -26,6 +26,7 @@
  */
  
 import lynxTypes::*;
+import bftTypes::*;
 
 /**
  *  PT Config Slave
@@ -353,18 +354,17 @@ always_ff @(posedge aclk, negedge aresetn) begin
 end
 
 
-//`define DEBUG_CNFG_SLAVE
 `ifdef DEBUG_CNFG_SLAVE
-ila_ccl_slave ila_ccl_slave
+ila_cnfg_slave ila_cnfg_slave
 (
  .clk(aclk), // input wire clk
-  .probe0(slv_reg_rden),                                      //1
-  .probe1(axi_rdata),                                          // 64
-  .probe2(axi_rvalid),                                         // 1
-  .probe3(axi_arready),                                    // 1
-  .probe4(axi_ctrl.rready),                                          //1
-  .probe5(axi_ctrl.arvalid),                                      //1
-  .probe6(axi_ctrl.araddr),                                       //64
+  .probe0(slv_reg_rden), //1
+  .probe1(axi_rdata), // 64
+  .probe2(axi_rvalid), // 1
+  .probe3(axi_arready), // 1
+  .probe4(axi_ctrl.rready), //1
+  .probe5(axi_ctrl.arvalid), //1
+  .probe6(axi_ctrl.araddr), //64
   .probe7(ap_done),
   .probe8(slv_reg_wren),  //1
   .probe9(axi_ctrl.wdata[63:0]), //64

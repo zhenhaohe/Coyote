@@ -30,6 +30,7 @@
 `include "lynx_macros.svh"
 
 import lynxTypes::*;
+import bftTypes::*;
 
 /**
  * User logic
@@ -247,7 +248,6 @@ inst_axis_host_0_src_reg_array
 
 assign device_host_down = axis_host_0_src_ready_down;
 
-// `define ILA_HOST_DEBUG
 `ifdef ILA_HOST_DEBUG
 ila_host host_debug (
 	.clk(aclk), // input wire clk

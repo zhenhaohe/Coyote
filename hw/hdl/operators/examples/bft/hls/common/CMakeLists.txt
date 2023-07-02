@@ -33,7 +33,8 @@ endfunction()
 foreach (target ${HLS_TARGETS})
     add_custom_target_with_dependency(${target} append_stream_64)
     add_custom_target_with_dependency(${target} duplicate_stream_64)
-    add_custom_target_with_dependency(${target} net_meta_gen)
+    add_custom_target_with_dependency(${target} duplicate_meta_64)
+    add_custom_target_with_dependency(${target} duplicate_meta_32)
 endforeach()
 
 # Installation

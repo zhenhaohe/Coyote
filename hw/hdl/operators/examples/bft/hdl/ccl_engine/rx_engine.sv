@@ -25,7 +25,6 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 `timescale 1ns / 1ps
-`default_nettype none
 
 import lynxTypes::*;
 
@@ -109,4 +108,3 @@ assign m_axis_data_in_fifo_tready = rx_data_out_tready;
 
 
 endmodule
-`default_nettype wire

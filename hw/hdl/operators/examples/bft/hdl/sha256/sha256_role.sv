@@ -157,25 +157,6 @@ else if (NUM_CLUSTER == 4) begin
     .s_decode_err ( )
     );
 end
-else if (NUM_CLUSTER == 5) begin
-    axis_switch_width_512_1_to_5 axis_switch_width_512_1_to_5_inst (
-    .aclk ( aclk ),
-    .aresetn ( aresetn ),
-    .s_axis_tready ( m_axis_input_fifo_tready ),
-    .m_axis_tready ( m_axis_input_switch_tready ),
-    .s_axis_tvalid ( m_axis_input_fifo_tvalid ),
-    .s_axis_tdata ( m_axis_input_fifo_tdata ),
-    .s_axis_tkeep ( m_axis_input_fifo_tkeep ),
-    .s_axis_tlast ( m_axis_input_fifo_tlast ),
-    .s_axis_tdest ( s_axis_input_switch_tdest ),
-    .m_axis_tvalid ( m_axis_input_switch_tvalid ),
-    .m_axis_tdata ( m_axis_input_switch_tdata ),
-    .m_axis_tkeep ( m_axis_input_switch_tkeep ),
-    .m_axis_tlast ( m_axis_input_switch_tlast ),
-    .m_axis_tdest ( m_axis_input_switch_tdest ),
-    .s_decode_err ( )
-    );
-end
 else if (NUM_CLUSTER == 8) begin
     axis_switch_width_512_1_to_8 axis_switch_width_512_1_to_8_inst (
     .aclk ( aclk ),
@@ -262,24 +243,6 @@ else if (NUM_CLUSTER == 2) begin
 end
 else if (NUM_CLUSTER == 4) begin
     axis_switch_width_512_4_to_1 axis_switch_width_512_4_to_1 (
-        .aclk ( aclk ),
-        .aresetn ( aresetn ),
-        .s_axis_tready ( m_axis_pipeline_tready ),
-        .m_axis_tready ( m_axis_output_switch_tready ),
-        .s_req_suppress ( '0 ),
-        .s_axis_tvalid ( m_axis_pipeline_tvalid ),
-        .s_axis_tdata ( m_axis_pipeline_tdata ),
-        .s_axis_tkeep ( m_axis_pipeline_tkeep ),
-        .s_axis_tlast ( m_axis_pipeline_tlast ),
-        .m_axis_tvalid ( m_axis_output_switch_tvalid ),
-        .m_axis_tdata ( m_axis_output_switch_tdata ),
-        .m_axis_tkeep ( m_axis_output_switch_tkeep ),
-        .m_axis_tlast ( m_axis_output_switch_tlast ),
-        .s_decode_err ( )
-    );
-end
-else if (NUM_CLUSTER == 5) begin
-    axis_switch_width_512_5_to_1 axis_switch_width_512_5_to_1 (
         .aclk ( aclk ),
         .aresetn ( aresetn ),
         .s_axis_tready ( m_axis_pipeline_tready ),

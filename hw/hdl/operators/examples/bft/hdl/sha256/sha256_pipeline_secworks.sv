@@ -25,7 +25,6 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 `timescale 1ns / 1ps
-`default_nettype none
 
 `include "axi_macros.svh"
 `include "lynx_macros.svh"
@@ -57,9 +56,6 @@ module sha256_pipeline_secworks
     input  wire[0:0]            aresetn
 
 );
-
-localparam integer DEBUG = (PIPE_INDEX == 0) & (DEBUG == 1);
-
 
 logic                  sha256_input_fifo_tvalid;
 logic                  sha256_input_fifo_tlast;
@@ -167,19 +163,20 @@ axis_dwidth_converter_64_to_512 axis_dwidth_converter_64_to_512 (
 bft_depacketizer_ip bft_depacketizer_inst(
     .ap_clk(aclk),
     .ap_rst_n(aresetn),
-    .s_axis_tready ( m_axis_converter_64_to_512.tready ),
-    .s_axis_tvalid ( m_axis_converter_64_to_512.tvalid ),
-    .s_axis_tdata ( m_axis_converter_64_to_512.tdata ),
-    .s_axis_tkeep ( m_axis_converter_64_to_512.tkeep ),
-    .s_axis_tlast ( m_axis_converter_64_to_512.tlast ),
-    .m_axis_tready ( axis_sha_in.tready ),
-    .m_axis_tvalid ( axis_sha_in.tvalid ),
-    .m_axis_tdata ( axis_sha_in.tdata ),
-    .m_axis_tkeep ( axis_sha_in.tkeep ),
-    .m_axis_tlast ( axis_sha_in.tlast ),
-    .m_meta_tvalid (m_meta.valid),
-    .m_meta_tready (m_meta.ready),
-    .m_meta_tdata (m_meta.data)
+    .s_axis_TREADY ( m_axis_converter_64_to_512.tready ),
+    .s_axis_TVALID ( m_axis_converter_64_to_512.tvalid ),
+    .s_axis_TDATA ( m_axis_converter_64_to_512.tdata ),
+    .s_axis_TKEEP ( m_axis_converter_64_to_512.tkeep ),
+    .s_axis_TLAST ( m_axis_converter_64_to_512.tlast ),
+    .s_axis_TSTRB(0),
+    .m_axis_TREADY ( axis_sha_in.tready ),
+    .m_axis_TVALID ( axis_sha_in.tvalid ),
+    .m_axis_TDATA ( axis_sha_in.tdata ),
+    .m_axis_TKEEP ( axis_sha_in.tkeep ),
+    .m_axis_TLAST ( axis_sha_in.tlast ),
+    .m_meta_TVALID (m_meta.valid),
+    .m_meta_TREADY (m_meta.ready),
+    .m_meta_TDATA (m_meta.data)
 );
 
 assign m_meta.ready = 1'b1;
@@ -190,7 +187,7 @@ axis_reg_array #(.N_STAGES(1)) inst_axis_sha_in_reg_array (.aclk(aclk), .aresetn
 // input path 512
 // output path 256
 sha256_module_secworks #( 
-  .DEBUG(DEBUG)
+  .DEBUG((PIPE_INDEX == 0) & (DEBUG == 1))
 )sha256_module_secworks
 (
     .sha256_in_tvalid(axis_sha_in_reg.tvalid),
@@ -285,4 +282,3 @@ assign sha256_out_tkeep = sha_pipe_output_reg.tkeep;
 assign sha_pipe_output_reg.tready = sha256_out_tready;
 
 endmodule
-`default_nettype wire
