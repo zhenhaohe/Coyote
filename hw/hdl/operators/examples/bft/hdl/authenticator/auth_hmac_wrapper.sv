@@ -25,22 +25,22 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 `timescale 1ns / 1ps
+
 import lynxTypes::*;
 import bftTypes::*;
+
+`include "lynx_macros.svh"
+`include "axi_macros.svh"
 
 // Wrapper function of auth hmac
 module auth_hmac_wrapper 
 #( 
-    parameter integer PIPE_INDEX = 0,
-    parameter integer DEBUG = 0
+    parameter integer PIPE_INDEX = 0
 )
 (
-    // key config
-    metaIntf.s                      s_config, // 256 bits
-
     // msg
-    metaIntf.s                      s_msg, // 32 bits
-    metaIntf.m                      m_msg, // 32 bits
+    AXI4S.s                         s_msg, // 32 bits
+    AXI4S.m                         m_msg, // 32 bits
 
     // hash
     metaIntf.m                      m_hsh, // 256 bits
@@ -54,6 +54,9 @@ module auth_hmac_wrapper
 
 );
 
+AXI4S #(.AXI4S_DATA_BITS(32)) s_msg_s0();
+AXI4S #(.AXI4S_DATA_BITS(32)) s_msg_s1();
+
 metaIntf #(.STYPE(logic[64-1:0])) s_meta_s0();
 metaIntf #(.STYPE(logic[64-1:0])) s_meta_s1();
 metaIntf #(.STYPE(logic[64-1:0])) s_meta_s2();
@@ -63,23 +66,33 @@ metaIntf #(.STYPE(logic[32-1:0])) key_lookup_resp();
 
 metaIntf #(.STYPE(logic[64-1:0])) len_strm();
 
-metaIntf #(.STYPE(logic[32-1:0])) msg_strm_s0();
-metaIntf #(.STYPE(logic[32-1:0])) msg_strm_s1();
+metaIntf #(.STYPE(logic[32-1:0])) msg_meta_s0();
 
 // replicate the msg strm
-duplicate_meta_32_ip duplicate_meta_32_inst(
+duplicate_stream_32_ip duplicate_stream_32_inst(
     .ap_clk(aclk),
     .ap_rst_n(aresetn),
-    .in_r_TDATA(s_msg.data),
-    .in_r_TVALID(s_msg.valid),
-    .in_r_TREADY(s_msg.ready),
-    .out0_TDATA(msg_strm_s0.data),
-    .out0_TVALID(msg_strm_s0.valid),
-    .out0_TREADY(msg_strm_s0.ready),
-    .out1_TDATA(msg_strm_s1.data),
-    .out1_TVALID(msg_strm_s1.valid),
-    .out1_TREADY(msg_strm_s1.ready)
+    .in_r_TDATA(s_msg.tdata),
+    .in_r_TVALID(s_msg.tvalid),
+    .in_r_TREADY(s_msg.tready),
+    .in_r_TKEEP(s_msg.tkeep),
+    .in_r_TLAST(s_msg.tlast),
+    .in_r_TSTRB(0),
+    .out0_TDATA(s_msg_s0.tdata),
+    .out0_TVALID(s_msg_s0.tvalid),
+    .out0_TREADY(s_msg_s0.tready),
+    .out0_TKEEP(s_msg_s0.tkeep),
+    .out0_TLAST(s_msg_s0.tlast),
+    .out1_TDATA(s_msg_s1.tdata),
+    .out1_TVALID(s_msg_s1.tvalid),
+    .out1_TREADY(s_msg_s1.tready),
+    .out1_TKEEP(s_msg_s1.tkeep),
+    .out1_TLAST(s_msg_s1.tlast)
 );
+
+assign msg_meta_s0.valid = s_msg_s0.tvalid;
+assign msg_meta_s0.data = s_msg_s0.tdata;
+assign s_msg_s0.tready = msg_meta_s0.ready;
 
 // replicate the meta for dest and len
 duplicate_meta_64_ip duplicate_meta_64_inst(
@@ -124,12 +137,11 @@ assign s_meta_s2.ready = len_strm.ready;
 
 
 auth_hmac #( 
-    .PIPE_INDEX(PIPE_INDEX),
-    .DEBUG(DEBUG)
+    .PIPE_INDEX(PIPE_INDEX)
 ) auth_hmac
 (
     .keyStrm(key_lookup_resp), //32 bits
-    .msgStrm(msg_strm_s0), //32 bits
+    .msgStrm(msg_meta_s0), //32 bits
     .lenStrm(len_strm), //64 bits
     .hshStrm(m_hsh), //256 bits
     .aclk(aclk),
@@ -140,9 +152,6 @@ auth_hmac #(
 auth_key_handler_ip auth_key_handler_inst(
     .ap_clk(aclk),
     .ap_rst_n(aresetn),
-    .init_key_strm_in_TDATA(s_config.data),
-    .init_key_strm_in_TVALID(s_config.valid),
-    .init_key_strm_in_TREADY(s_config.ready),
     .key_resp_out_TDATA(key_lookup_resp.data),
     .key_resp_out_TVALID(key_lookup_resp.valid),
     .key_resp_out_TREADY(key_lookup_resp.ready),
@@ -151,6 +160,6 @@ auth_key_handler_ip auth_key_handler_inst(
     .key_lookup_in_TREADY(key_lookup.ready)
 );
 
-`META_ASSIGN(msg_strm_s1, m_msg)
+`AXIS_ASSIGN(s_msg_s1, m_msg)
 
 endmodule

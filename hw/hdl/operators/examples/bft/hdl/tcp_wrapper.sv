@@ -36,7 +36,7 @@ import bftTypes::*;
  * User logic
  * 
  */
-module tcp_intf_wrapper (
+module tcp_wrapper (
     // control
     input wire                  ap_clr_pulse,
     input wire [63:0]           maxPkgWord,
@@ -65,8 +65,8 @@ module tcp_intf_wrapper (
     metaIntf.s			        tcp_0_tx_stat,
 
     // AXI4S TCP/IP QSFP0 STREAMS
-    AXI4S.s                     axis_tcp_0_sink,
-    AXI4S.m                     axis_tcp_0_src,
+    AXI4SR.s                     axis_tcp_0_sink,
+    AXI4SR.m                     axis_tcp_0_src,
 
     // debug registers
     output wire [63:0]  	    consumed_bytes_network,
@@ -192,9 +192,9 @@ assign close_con_cmd.ready = 1'b1;
 
 logic [63:0] axis_tcp_0_sink_ready_down, axis_tcp_0_src_ready_down;
 
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) axis_tcp_0_sink_reg();
+AXI4SR #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) axis_tcp_0_sink_reg();
 
-axis_reg_array_profiler #(.N_STAGES(4), .DATA_BITS(AXI_DATA_BITS)) 
+axisr_reg_array_profiler #(.N_STAGES(4), .DATA_BITS(AXI_DATA_BITS)) 
 inst_axis_tcp_0_sink_reg_array 
 (
     .aclk(aclk), 
@@ -209,9 +209,9 @@ inst_axis_tcp_0_sink_reg_array
 
 assign net_device_down = axis_tcp_0_sink_ready_down;
 
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) axis_tcp_0_src_reg();
+AXI4SR #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) axis_tcp_0_src_reg();
 
-axis_reg_array_profiler #(.N_STAGES(4), .DATA_BITS(AXI_DATA_BITS)) 
+axisr_reg_array_profiler #(.N_STAGES(4), .DATA_BITS(AXI_DATA_BITS)) 
 inst_axis_tcp_0_src_reg_array 
 (
     .aclk(aclk), 
@@ -226,7 +226,7 @@ inst_axis_tcp_0_src_reg_array
 
 assign device_net_down = axis_tcp_0_src_ready_down;
 
-tcp_intf_ip tcp_intf
+tcp_intf_wrapper tcp_intf_wrapper
    (
     .ap_clk(aclk),
     .ap_rst_n(aresetn),

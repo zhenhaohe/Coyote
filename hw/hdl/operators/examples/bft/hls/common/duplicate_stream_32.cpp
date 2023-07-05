@@ -39,7 +39,6 @@ using namespace std;
 #define DWIDTH16 16
 #define DWIDTH8 8
 
-#define DATA_WIDTH 512
 
 typedef ap_axiu<DWIDTH512, 0, 0, 0> pkt512;
 typedef ap_axiu<DWIDTH256, 0, 0, 0> pkt256;
@@ -49,48 +48,24 @@ typedef ap_axiu<DWIDTH32, 0, 0, 0> pkt32;
 typedef ap_axiu<DWIDTH16, 0, 0, 0> pkt16;
 typedef ap_axiu<DWIDTH8, 0, 0, 0> pkt8;
 
-void auth_key_bcast_handler(
-                hls::stream<pkt512 >& bcastInStream,
-                hls::stream<pkt512 >& bcastOutStream,
-                ap_uint<32> bcast_factor
-                );
-
-int main()
+void duplicate_stream_32(	
+                        hls::stream<pkt32>&	in,
+                        hls::stream<pkt32>&	out0,
+                        hls::stream<pkt32>& out1
+)
 {
-	hls::stream<pkt512 > bcastInStream;
-    hls::stream<pkt512 > bcastOutStream; 
-    ap_uint<32> bcast_factor = 4;
-    ap_uint<32> bcastLen = 16;
+#pragma HLS INTERFACE axis register  port=in
+#pragma HLS INTERFACE axis register  port=out0
+#pragma HLS INTERFACE axis register  port=out1
+#pragma HLS INTERFACE ap_ctrl_none port=return
 
-    int count = 0;
-    
-    for (size_t i = 0; i < bcastLen; i++)
-    {
-        pkt512 currWord;
-        currWord.data = i;
-        currWord.last = (i == (bcastLen-1));
-        currWord.keep = 0xFFFFFFFFFFFFFFFF;
-        bcastInStream.write(currWord);
-    }
-    
-    while(count < 1000)
-    {
+	#pragma HLS PIPELINE II=1
+	#pragma HLS INLINE off
 
-    	auth_key_bcast_handler(
-               bcastInStream,
-               bcastOutStream, 
-               bcast_factor
-                );
-
-        if (!bcastOutStream.empty())
-        {
-            pkt512 outWord = bcastOutStream.read();
-        }
-
-    	count++;
-    }
-
-
-	
-	return 0;
+	if (!in.empty())
+	{
+		pkt32 item = in.read();
+		out0.write(item);
+		out1.write(item);
+	}
 }

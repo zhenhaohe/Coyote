@@ -46,8 +46,6 @@ module auth_role_wrapper #(
     AXI4S.m                     m_axis,
     metaIntf.m                  m_meta,
 
-    AXI4S.s                     s_key,
-
     // Clock and reset
     input  wire                 aclk,
     input  wire[0:0]            aresetn
@@ -96,12 +94,6 @@ auth_role #(
     .auth_out_tready(auth_out.tready),
     .auth_out_tdata(auth_out.tdata),
     .auth_out_tkeep(auth_out.tkeep),
-
-    .auth_key_config_in_tvalid(s_key.tvalid),
-    .auth_key_config_in_tlast(s_key.tlast),
-    .auth_key_config_in_tready(s_key.tready),
-    .auth_key_config_in_tdata(s_key.tdata),
-    .auth_key_config_in_tkeep(s_key.tkeep),
 
     // Clock and reset
     .aclk(aclk),

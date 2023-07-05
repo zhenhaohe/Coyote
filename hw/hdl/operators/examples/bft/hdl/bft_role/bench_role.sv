@@ -56,19 +56,12 @@ module bench_role (
 );
 
 
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) comm_strm_s0();
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) comm_strm_s1();
+metaIntf #(.STYPE(64)) comm_meta_s0();
+metaIntf #(.STYPE(64)) comm_meta_s1();
 
 AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) tx_msg_strm_s0();
 AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) tx_msg_strm_s1();
 AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) tx_msg_strm_s2();
-
-
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) authkey_strm_s0();
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) authkey_strm_s1();
-
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) verifkey_strm_s0();
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) verifkey_strm_s1();
 
 AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) tx_payload_s0();
 AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) tx_payload_s1();
@@ -141,6 +134,7 @@ bench_role_slave bench_role_slave(
 	.axi_ctrl(s_axi_ctrl),
 	.ap_clr(ap_clr),
     .ap_done(ap_done),
+    .comm_meta (comm_meta_s0),
     .bft_tx_stat(bft_tx_stat_s1),
     .bft_rx_stat(bft_rx_stat_s1),
     .exp_tx_net_pkt(exp_tx_net_pkt),
@@ -149,23 +143,14 @@ bench_role_slave bench_role_slave(
 );
 
 
-// Multiplex the host input data stream to bft, communicator, auth key and verif key
-bft_strm_arbiter bft_strm_arbiter(
-    .s_axis(hostRxData),
+assign tx_msg_strm_s0.tvalid = hostRxData.tvalid;
+assign tx_msg_strm_s0.tlast = hostRxData.tlast;
+assign tx_msg_strm_s0.tdata = hostRxData.tdata;
+assign tx_msg_strm_s0.tkeep = hostRxData.tkeep;
+assign hostRxData.tready = tx_msg_strm_s0.tready;
 
-    .m_axis_0(tx_msg_strm_s0),
-    .m_axis_1(comm_strm_s0),
-    .m_axis_2(authkey_strm_s0),
-    .m_axis_3(verifkey_strm_s0),
-
-    .aclk(aclk),
-    .aresetn(aresetn)
-);
-
-axis_reg_array #(.N_STAGES(3)) inst_comm_strm_array (.aclk(aclk), .aresetn(aresetn), .s_axis(comm_strm_s0), .m_axis(comm_strm_s1));
+meta_reg_array #(.N_STAGES(3), .DATA_BITS(64)) inst_comm_meta_array (.aclk(aclk), .aresetn(aresetn), .s_meta(comm_meta_s0), .m_meta(comm_meta_s1));
 axis_reg_array #(.N_STAGES(3)) inst_tx_msg_strm_array (.aclk(aclk), .aresetn(aresetn), .s_axis(tx_msg_strm_s0), .m_axis(tx_msg_strm_s1));
-axis_reg_array #(.N_STAGES(3)) inst_authkey_strm_array (.aclk(aclk), .aresetn(aresetn), .s_axis(authkey_strm_s0), .m_axis(authkey_strm_s1));
-axis_reg_array #(.N_STAGES(3)) inst_verifkey_strm_array (.aclk(aclk), .aresetn(aresetn), .s_axis(verifkey_strm_s0), .m_axis(verifkey_strm_s1));
 
 
 // bft tx data path
@@ -194,7 +179,7 @@ bft_bcast_ip bft_bcast_inst(
     .ap_rst_n(aresetn),
     .s_meta_TVALID (tx_hdr_s0.valid),
     .s_meta_TREADY (tx_hdr_s0.ready),
-    .s_meta_TDATA (tx_hdr_s0.data)
+    .s_meta_TDATA (tx_hdr_s0.data),
     .s_axis_TREADY ( tx_payload_s0.tready ),
     .s_axis_TVALID ( tx_payload_s0.tvalid ),
     .s_axis_TDATA ( tx_payload_s0.tdata ),
@@ -256,12 +241,11 @@ axis_reg_array_profiler #(.N_STAGES(2), .DATA_BITS(AXI_DATA_BITS)) inst_axis_tx_
 meta_reg_array #(.N_STAGES(2), .DATA_BITS($bits(bft_hdr_t))) inst_tx_hdr_auth_array (.aclk(aclk), .aresetn(aresetn), .s_meta(tx_hdr_crypt_s0), .m_meta(tx_hdr_crypt_s1));
 
 auth_role_wrapper #(.NUM_ENGINE(NUM_AUTH_TX), .VERIFICATION(0))
-auth_role_wrapper(
+auth_role_wrapper_tx(
     .s_axis(tx_payload_crypt_s1),
     .s_meta(tx_hdr_crypt_s1),
     .m_axis(tx_payload_crypt_s2),
     .m_meta(tx_hdr_crypt_s2),
-    .s_key(authkey_strm_s1),
     .aclk(aclk),
     .aresetn(aresetn)
 );
@@ -328,7 +312,7 @@ ccl_engine ccl_engine
     .net_rx_meta_in(netRxMeta),
     .rx_data_out(rx_net_msg_s0),
     .rx_meta_out(rx_net_meta_s0),
-    .configComm_in(comm_strm_s1),
+    .configComm_in(comm_meta_s1),
     .aclk(aclk),
     .aresetn(aresetn)
 
@@ -403,12 +387,11 @@ axis_reg_array_profiler #(.N_STAGES(2), .DATA_BITS(AXI_DATA_BITS)) inst_axis_rx_
 meta_reg_array #(.N_STAGES(2), .DATA_BITS($bits(bft_hdr_t))) inst_rx_hdr_auth_array (.aclk(aclk), .aresetn(aresetn), .s_meta(rx_hdr_crypt_s0), .m_meta(rx_hdr_crypt_s1));
 
 auth_role_wrapper #(.NUM_ENGINE(NUM_AUTH_RX), .VERIFICATION(1))
-auth_role_wrapper(
+auth_role_wrapper_rx(
     .s_axis(rx_payload_crypt_s1),
     .s_meta(rx_hdr_crypt_s1),
     .m_axis(rx_payload_crypt_s2),
     .m_meta(rx_hdr_crypt_s2),
-    .s_key(verifkey_strm_s1),
     .aclk(aclk),
     .aresetn(aresetn)
 );
@@ -424,7 +407,7 @@ bft_mux bft_rx_mux(
     .aresetn(aresetn)
 );
 
-bft_packetizer_ip bft_tx_packetizer_inst(
+bft_packetizer_ip bft_rx_packetizer_inst(
     .ap_clk(aclk),
     .ap_rst_n(aresetn),
     .s_axis_TREADY ( rx_payload_s2.tready ),

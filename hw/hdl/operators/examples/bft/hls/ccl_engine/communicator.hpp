@@ -9,27 +9,24 @@ using namespace std;
 
 struct commLookupReqType
 {
-    ap_uint<32> currRank;
+    ap_uint<16> currRank;
 };
 
 struct commLookupRespType
 {
-    ap_uint<32> totalRank;
-    ap_uint<32> localRank;
-    ap_uint<32> currRank;
-    ap_uint<32> session;
+    ap_uint<16> totalRank;
+    ap_uint<16> localRank;
+    ap_uint<16> currRank;
+    ap_uint<16> session;
 };
 
 
 struct rankTableEntryType
 {
     bool valid;
-    ap_uint<32> totalRank;
-    ap_uint<32> localRank;
-    ap_uint<32> currRank;
-    ap_uint<32> ip;
-    ap_uint<32> port;
-    ap_uint<32> session;
-    ap_uint<32> rsvd;
+    ap_uint<16> totalRank;
+    ap_uint<16> localRank;
+    ap_uint<16> currRank;
+    ap_uint<16> session;
 };
 

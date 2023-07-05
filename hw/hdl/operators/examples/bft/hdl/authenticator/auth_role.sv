@@ -28,10 +28,7 @@
 import lynxTypes::*;
 import bftTypes::*;
 
-// Use the tuser side channel to distinguish whether input is key init stream or auth message stream
-// tusr - 0: auth message stream - 1: auth key init stream
 // the first word of the message contains header, containing index(dst) information: | Payload | Header |
-// the output contains the tag, message payload and the header | Auth | Payload | Header |
 
 module auth_role #( 
   parameter integer NUM_ENGINE = 4,
@@ -53,63 +50,10 @@ module auth_role #(
     output wire [511:0]         auth_out_tdata,
     output wire [63:0]          auth_out_tkeep,
 
-    input wire                  auth_key_config_in_tvalid,
-    input wire                  auth_key_config_in_tlast,
-    output wire                 auth_key_config_in_tready,
-    input wire [511:0]          auth_key_config_in_tdata,
-    input wire [63:0]           auth_key_config_in_tkeep,
-
     // Clock and reset
     input  wire                 aclk,
     input  wire[0:0]            aresetn
 
-);
-
-// bcast module for the auth key config in
-logic auth_key_config_bcast_tvalid;
-logic auth_key_config_bcast_tready;
-logic auth_key_config_bcast_tlast;
-logic [512-1:0] auth_key_config_bcast_tdata;
-logic [64-1:0] auth_key_config_bcast_tkeep;
-
-logic auth_key_config_bcast_reg_tvalid;
-logic auth_key_config_bcast_reg_tready;
-logic auth_key_config_bcast_reg_tlast;
-logic [512-1:0] auth_key_config_bcast_reg_tdata;
-logic [64-1:0] auth_key_config_bcast_reg_tkeep;
-
-auth_key_bcast_handler_ip auth_key_bcast_handler_inst(
-    .ap_clk(aclk),
-    .ap_rst_n(aresetn),
-    .bcastInStream_TDATA(auth_key_config_in_tdata),
-    .bcastInStream_TVALID(auth_key_config_in_tvalid),
-    .bcastInStream_TREADY(auth_key_config_in_tready),
-    .bcastInStream_TKEEP(auth_key_config_in_tkeep),
-    .bcastInStream_TSTRB(0),
-    .bcastInStream_TLAST(auth_key_config_in_tlast),
-    .bcastOutStream_TDATA(auth_key_config_bcast_tdata),
-    .bcastOutStream_TVALID(auth_key_config_bcast_tvalid),
-    .bcastOutStream_TREADY(auth_key_config_bcast_tready),
-    .bcastOutStream_TKEEP(auth_key_config_bcast_tkeep),
-    .bcastOutStream_TSTRB(),
-    .bcastOutStream_TLAST(auth_key_config_bcast_tlast),
-    .bcast_factor_V(NUM_ENGINE)
-);
-
-
-axis_register_slice_width_512 reg_slice_512 (
-    .aclk ( aclk ),
-    .aresetn ( aresetn ),
-    .s_axis_tkeep ( auth_key_config_bcast_tkeep ),
-    .s_axis_tlast ( auth_key_config_bcast_tlast ),
-    .s_axis_tready ( auth_key_config_bcast_tready ),
-    .s_axis_tvalid ( auth_key_config_bcast_tvalid ),
-    .s_axis_tdata ( auth_key_config_bcast_tdata ),
-    .m_axis_tkeep ( auth_key_config_bcast_reg_tkeep ),
-    .m_axis_tlast ( auth_key_config_bcast_reg_tlast ),
-    .m_axis_tready ( auth_key_config_bcast_reg_tready ),
-    .m_axis_tvalid ( auth_key_config_bcast_reg_tvalid ),
-    .m_axis_tdata ( auth_key_config_bcast_reg_tdata )
 );
 
 // fifo for the auth encrypt in
@@ -134,57 +78,6 @@ axis_data_fifo_width_512_depth_128 auth_role_input_fifo (
     .m_axis_tlast ( m_axis_auth_input_fifo_tlast )
 );
 
-// Append user ID for key config stream and message stream
-localparam integer NUM_S_AXI_SWITCH = 2;
-
-logic [NUM_S_AXI_SWITCH-1:0] s_axis_tuser_switch_tvalid;
-logic [NUM_S_AXI_SWITCH-1:0] s_axis_tuser_switch_tready;
-logic [NUM_S_AXI_SWITCH-1:0] s_axis_tuser_switch_tlast;
-logic [NUM_S_AXI_SWITCH-1:0] s_axis_tuser_switch_tuser;
-logic [NUM_S_AXI_SWITCH*512-1:0] s_axis_tuser_switch_tdata;
-logic [NUM_S_AXI_SWITCH*64-1:0] s_axis_tuser_switch_tkeep;
-
-logic m_axis_tuser_switch_tvalid;
-logic m_axis_tuser_switch_tready;
-logic m_axis_tuser_switch_tlast;
-logic m_axis_tuser_switch_tuser;
-logic [512-1:0] m_axis_tuser_switch_tdata;
-logic [64-1:0] m_axis_tuser_switch_tkeep;
-
-assign s_axis_tuser_switch_tvalid[0] = m_axis_auth_input_fifo_tvalid;
-assign s_axis_tuser_switch_tlast[0] = m_axis_auth_input_fifo_tlast;
-assign s_axis_tuser_switch_tuser[0] = 0;
-assign s_axis_tuser_switch_tdata[(0+1)*512-1:0*512] = m_axis_auth_input_fifo_tdata;
-assign s_axis_tuser_switch_tkeep[(0+1)*64-1:0*64] = m_axis_auth_input_fifo_tkeep;
-assign m_axis_auth_input_fifo_tready = s_axis_tuser_switch_tready[0];
-
-assign s_axis_tuser_switch_tvalid[1] =auth_key_config_bcast_reg_tvalid;
-assign s_axis_tuser_switch_tlast[1] =auth_key_config_bcast_reg_tlast;
-assign s_axis_tuser_switch_tuser[1] = 1;
-assign s_axis_tuser_switch_tdata[(1+1)*512-1:1*512] =auth_key_config_bcast_reg_tdata;
-assign s_axis_tuser_switch_tkeep[(1+1)*64-1:1*64] =auth_key_config_bcast_reg_tkeep;
-assign auth_key_config_bcast_reg_tready = s_axis_tuser_switch_tready[1];
-
-axis_switch_tuser_width_512_2_to_1 axis_switch_tuser_width_512_2_to_1_inst
-(
-    .aclk ( aclk ),
-    .aresetn ( aresetn ),
-    .s_axis_tready ( s_axis_tuser_switch_tready ),
-    .m_axis_tready ( m_axis_tuser_switch_tready ),
-    .s_req_suppress ( '0 ),
-    .s_axis_tvalid ( s_axis_tuser_switch_tvalid ),
-    .s_axis_tdata ( s_axis_tuser_switch_tdata ),
-    .s_axis_tkeep ( s_axis_tuser_switch_tkeep ),
-    .s_axis_tlast ( s_axis_tuser_switch_tlast ),
-    .s_axis_tuser ( s_axis_tuser_switch_tuser ),
-    .m_axis_tvalid ( m_axis_tuser_switch_tvalid ),
-    .m_axis_tdata ( m_axis_tuser_switch_tdata ),
-    .m_axis_tkeep ( m_axis_tuser_switch_tkeep ),
-    .m_axis_tlast ( m_axis_tuser_switch_tlast ),
-    .m_axis_tuser ( m_axis_tuser_switch_tuser ),
-    .s_decode_err ( )
-);
-
 
 // Forward the input stream to parallel engines
 // For config stream, the same configuration information is forwarded multiple times and multiplexed to different engines
@@ -194,7 +87,6 @@ localparam integer NUM_ENGINE_BITS = $clog2(NUM_ENGINE);
 logic [NUM_ENGINE-1:0] m_axis_input_switch_tvalid;
 logic [NUM_ENGINE-1:0] m_axis_input_switch_tready;
 logic [NUM_ENGINE-1:0] m_axis_input_switch_tlast;
-logic [NUM_ENGINE-1:0] m_axis_input_switch_tuser;
 logic [NUM_ENGINE*512-1:0] m_axis_input_switch_tdata;
 logic [NUM_ENGINE*64-1:0] m_axis_input_switch_tkeep;
 logic [NUM_ENGINE*NUM_ENGINE_BITS-1:0] m_axis_input_switch_tdest;
@@ -213,96 +105,78 @@ end
 
 always_ff @( posedge aclk ) begin 
     if (~aresetn) begin
-        s_axis_input_switch_tdest_message <= '0;
-        s_axis_input_switch_tdest_config <= '0;
+        s_axis_input_switch_tdest <= '0;
     end
     else begin
-        if (m_axis_tuser_switch_tready & m_axis_tuser_switch_tvalid & m_axis_tuser_switch_tlast & (m_axis_tuser_switch_tuser == 0)) begin
-            s_axis_input_switch_tdest_message <= s_axis_input_switch_tdest_message + 1;
-            if (s_axis_input_switch_tdest_message == num_engine_reg - 1) begin
-                s_axis_input_switch_tdest_message <= '0;
+        if (m_axis_auth_input_fifo_tready & m_axis_auth_input_fifo_tvalid & m_axis_auth_input_fifo_tlast) begin
+            s_axis_input_switch_tdest <= s_axis_input_switch_tdest + 1;
+            if (s_axis_input_switch_tdest == num_engine_reg - 1) begin
+                s_axis_input_switch_tdest <= '0;
             end
         end
-
-        if (m_axis_tuser_switch_tready & m_axis_tuser_switch_tvalid & m_axis_tuser_switch_tlast & (m_axis_tuser_switch_tuser == 1)) begin
-            s_axis_input_switch_tdest_config <= s_axis_input_switch_tdest_config + 1;
-            if (s_axis_input_switch_tdest_config == NUM_ENGINE - 1) begin
-                s_axis_input_switch_tdest_config <= '0;
-            end
-        end
-
     end 
 end
 
-assign s_axis_input_switch_tdest = (m_axis_tuser_switch_tuser == 0) ? s_axis_input_switch_tdest_message : s_axis_input_switch_tdest_config;
-
 if (NUM_ENGINE == 1) begin
-    assign m_axis_input_switch_tvalid = m_axis_tuser_switch_tvalid;
-    assign m_axis_input_switch_tdata = m_axis_tuser_switch_tdata;
-    assign m_axis_input_switch_tkeep = m_axis_tuser_switch_tkeep;
-    assign m_axis_input_switch_tlast = m_axis_tuser_switch_tlast;
-    assign m_axis_tuser_switch_tready = m_axis_input_switch_tready;
-    assign m_axis_input_switch_tuser = m_axis_tuser_switch_tuser;
+    assign m_axis_input_switch_tvalid = m_axis_auth_input_fifo_tvalid;
+    assign m_axis_input_switch_tdata = m_axis_auth_input_fifo_tdata;
+    assign m_axis_input_switch_tkeep = m_axis_auth_input_fifo_tkeep;
+    assign m_axis_input_switch_tlast = m_axis_auth_input_fifo_tlast;
+    assign m_axis_auth_input_fifo_tready = m_axis_input_switch_tready;
 end
 else if (NUM_ENGINE == 2) begin
-    axis_switch_tuser_width_512_1_to_2 axis_switch_tuser_width_512_1_to_2_inst (
+    axis_switch_width_512_1_to_2 axis_switch_width_512_1_to_2_inst (
     .aclk ( aclk ),
     .aresetn ( aresetn ),
-    .s_axis_tready ( m_axis_tuser_switch_tready ),
+    .s_axis_tready ( m_axis_auth_input_fifo_tready ),
     .m_axis_tready ( m_axis_input_switch_tready ),
-    .s_axis_tvalid ( m_axis_tuser_switch_tvalid ),
-    .s_axis_tdata ( m_axis_tuser_switch_tdata ),
-    .s_axis_tkeep ( m_axis_tuser_switch_tkeep ),
-    .s_axis_tlast ( m_axis_tuser_switch_tlast ),
-    .s_axis_tuser ( m_axis_tuser_switch_tuser ),
+    .s_axis_tvalid ( m_axis_auth_input_fifo_tvalid ),
+    .s_axis_tdata ( m_axis_auth_input_fifo_tdata ),
+    .s_axis_tkeep ( m_axis_auth_input_fifo_tkeep ),
+    .s_axis_tlast ( m_axis_auth_input_fifo_tlast ),
     .s_axis_tdest ( s_axis_input_switch_tdest ),
     .m_axis_tvalid ( m_axis_input_switch_tvalid ),
     .m_axis_tdata ( m_axis_input_switch_tdata ),
     .m_axis_tkeep ( m_axis_input_switch_tkeep ),
     .m_axis_tlast ( m_axis_input_switch_tlast ),
-    .m_axis_tuser ( m_axis_input_switch_tuser ),
     .m_axis_tdest ( m_axis_input_switch_tdest ),
     .s_decode_err ( )
     );
 end
 else if (NUM_ENGINE == 4) begin
-    axis_switch_tuser_width_512_1_to_4 axis_switch_tuser_width_512_1_to_4_inst (
+    axis_switch_width_512_1_to_4 axis_switch_width_512_1_to_4_inst (
     .aclk ( aclk ),
     .aresetn ( aresetn ),
-    .s_axis_tready ( m_axis_tuser_switch_tready ),
+    .s_axis_tready ( m_axis_auth_input_fifo_tready ),
     .m_axis_tready ( m_axis_input_switch_tready ),
-    .s_axis_tvalid ( m_axis_tuser_switch_tvalid ),
-    .s_axis_tdata ( m_axis_tuser_switch_tdata ),
-    .s_axis_tkeep ( m_axis_tuser_switch_tkeep ),
-    .s_axis_tlast ( m_axis_tuser_switch_tlast ),
-    .s_axis_tuser ( m_axis_tuser_switch_tuser ),
+    .s_axis_tvalid ( m_axis_auth_input_fifo_tvalid ),
+    .s_axis_tdata ( m_axis_auth_input_fifo_tdata ),
+    .s_axis_tkeep ( m_axis_auth_input_fifo_tkeep ),
+    .s_axis_tlast ( m_axis_auth_input_fifo_tlast ),
     .s_axis_tdest ( s_axis_input_switch_tdest ),
     .m_axis_tvalid ( m_axis_input_switch_tvalid ),
     .m_axis_tdata ( m_axis_input_switch_tdata ),
     .m_axis_tkeep ( m_axis_input_switch_tkeep ),
     .m_axis_tlast ( m_axis_input_switch_tlast ),
-    .m_axis_tuser ( m_axis_input_switch_tuser ),
     .m_axis_tdest ( m_axis_input_switch_tdest ),
     .s_decode_err ( )
     );
 end
 else if (NUM_ENGINE == 8) begin
-    axis_switch_tuser_width_512_1_to_8 axis_switch_tuser_width_512_1_to_8_inst (
+    axis_switch_width_512_1_to_8 axis_switch_width_512_1_to_8_inst (
     .aclk ( aclk ),
     .aresetn ( aresetn ),
-    .s_axis_tready ( m_axis_tuser_switch_tready ),
+    .s_axis_tready ( m_axis_auth_input_fifo_tready ),
     .m_axis_tready ( m_axis_input_switch_tready ),
-    .s_axis_tvalid ( m_axis_tuser_switch_tvalid ),
-    .s_axis_tdata ( m_axis_tuser_switch_tdata ),
-    .s_axis_tkeep ( m_axis_tuser_switch_tkeep ),
-    .s_axis_tlast ( m_axis_tuser_switch_tlast ),
-    .s_axis_tuser ( m_axis_tuser_switch_tuser ),
+    .s_axis_tvalid ( m_axis_auth_input_fifo_tvalid ),
+    .s_axis_tdata ( m_axis_auth_input_fifo_tdata ),
+    .s_axis_tkeep ( m_axis_auth_input_fifo_tkeep ),
+    .s_axis_tlast ( m_axis_auth_input_fifo_tlast ),
     .s_axis_tdest ( s_axis_input_switch_tdest ),
     .m_axis_tvalid ( m_axis_input_switch_tvalid ),
     .m_axis_tdata ( m_axis_input_switch_tdata ),
     .m_axis_tkeep ( m_axis_input_switch_tkeep ),
     .m_axis_tlast ( m_axis_input_switch_tlast ),
-    .m_axis_tuser ( m_axis_input_switch_tuser ),
     .m_axis_tdest ( m_axis_input_switch_tdest ),
     .s_decode_err ( )
     );
@@ -319,14 +193,12 @@ generate
     for (i=0; i<NUM_ENGINE; i=i+1) begin : AUTH_PARALLEL_PIPE // <-- example block name
         auth_pipe #( 
             .PIPE_INDEX(i),
-            .DEBUG(DEBUG),
             .VERIFICATION(VERIFICATION)
         )auth_pipe(
             .aclk ( aclk ),
             .aresetn ( aresetn ),
             .auth_in_tvalid(m_axis_input_switch_tvalid[i]),
             .auth_in_tlast(m_axis_input_switch_tlast[i]),
-            .auth_in_tuser(m_axis_input_switch_tuser[i]),
             .auth_in_tready(m_axis_input_switch_tready[i]),
             .auth_in_tdata(m_axis_input_switch_tdata[(i+1)*512-1:i*512]),
             .auth_in_tkeep(m_axis_input_switch_tkeep[(i+1)*64-1:i*64]),

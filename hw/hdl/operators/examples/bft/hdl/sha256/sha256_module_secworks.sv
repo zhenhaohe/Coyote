@@ -142,25 +142,25 @@ axis_meta_register_slice_width_256 reg_slice_256 (
     .m_axis_tdata ( sha256_out_tdata )
 );
 
-if (DEBUG) begin
-    ila_sha_module_secworks ila_sha_module_secworks
-    (
-        .clk(aclk), // input wire clk
-        .probe0(sha256_in_reg_tready), //1
-        .probe1(sha256_in_reg_tvalid), //1
-        .probe2(sha256_in_reg_tlast), //1
-        .probe3(block_lock), //1
-        .probe4(is_last_block), //1
-        .probe5(s_tlast_i), //1
-        .probe6(s_tvalid_i), //1
-        .probe7(s_tready_o),
-        .probe8(digest_valid_o),
-        .probe9(sha256_out_reg_tvalid),
-        .probe10(sha256_out_reg_tready),
-        .probe11(s_tdata_i), // 512
-        .probe12(digest_o) //256
-    );
-end
+//if (DEBUG) begin
+//    ila_sha_module_secworks ila_sha_module_secworks
+//    (
+//        .clk(aclk), // input wire clk
+//        .probe0(sha256_in_reg_tready), //1
+//        .probe1(sha256_in_reg_tvalid), //1
+//        .probe2(sha256_in_reg_tlast), //1
+//        .probe3(block_lock), //1
+//        .probe4(is_last_block), //1
+//        .probe5(s_tlast_i), //1
+//        .probe6(s_tvalid_i), //1
+//        .probe7(s_tready_o),
+//        .probe8(digest_valid_o),
+//        .probe9(sha256_out_reg_tvalid),
+//        .probe10(sha256_out_reg_tready),
+//        .probe11(s_tdata_i), // 512
+//        .probe12(digest_o) //256
+//    );
+//end
 
 
 endmodule

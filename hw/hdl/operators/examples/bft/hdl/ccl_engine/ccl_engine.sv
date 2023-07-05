@@ -42,7 +42,7 @@ module ccl_engine
     AXI4S.m                     rx_data_out,
     metaIntf.m                  rx_meta_out,
 
-    AXI4S.s                     configComm_in,
+    metaIntf.s                  configComm_in,
 
     // Clock and reset
     input  wire                 aclk,
@@ -50,13 +50,10 @@ module ccl_engine
 
 );
 
-logic                   lookup_req_tvalid;
-logic                   lookup_req_tready;
-logic [31:0]            lookup_req_tdata;
+metaIntf #(.STYPE(32)) lookup_req();
+metaIntf #(.STYPE(128)) lookup_resp();
+metaIntf #(.STYPE(64)) comm_config();
 
-logic                   lookup_resp_tvalid;
-logic                   lookup_resp_tready;
-logic [127:0]           lookup_resp_tdata;
 
 tx_engine tx_engine
 (
@@ -80,13 +77,13 @@ tx_engine tx_engine
     .tx_meta_out_tready(net_tx_meta_out.ready),
     .tx_meta_out_tdata(net_tx_meta_out.data),
 
-    .lookup_req_tvalid(lookup_req_tvalid),
-    .lookup_req_tready(lookup_req_tready),
-    .lookup_req_tdata(lookup_req_tdata),
+    .lookup_req_tvalid(lookup_req.valid),
+    .lookup_req_tready(lookup_req.ready),
+    .lookup_req_tdata(lookup_req.data),
 
-    .lookup_resp_tvalid(lookup_resp_tvalid),
-    .lookup_resp_tready(lookup_resp_tready),
-    .lookup_resp_tdata(lookup_resp_tdata),
+    .lookup_resp_tvalid(lookup_resp.valid),
+    .lookup_resp_tready(lookup_resp.ready),
+    .lookup_resp_tdata(lookup_resp.data),
 
     // Clock and reset
     .aclk(aclk),
@@ -121,42 +118,30 @@ rx_engine rx_engine
     .aresetn(aresetn)
 );
 
-logic                   m_axis_config_comm_fifo_tvalid;
-logic                   m_axis_config_comm_fifo_tlast;
-logic                   m_axis_config_comm_fifo_tready;
-logic [511:0]           m_axis_config_comm_fifo_tdata;
-logic [63:0]            m_axis_config_comm_fifo_tkeep;
 
-axis_data_fifo_width_512_depth_16 config_comm_fifo (
+axis_meta_fifo_width_64_depth_16 config_comm_fifo (
     .s_axis_aclk ( aclk ),
     .s_axis_aresetn ( aresetn ),
-    .s_axis_tready ( configComm_in.tready ),
-    .m_axis_tready ( m_axis_config_comm_fifo_tready ),
-    .s_axis_tvalid ( configComm_in.tvalid ),
-    .s_axis_tdata ( configComm_in.tdata ),
-    .s_axis_tkeep ( configComm_in.tkeep ),
-    .s_axis_tlast ( configComm_in.tlast ),
-    .m_axis_tvalid ( m_axis_config_comm_fifo_tvalid ),
-    .m_axis_tdata ( m_axis_config_comm_fifo_tdata ),
-    .m_axis_tkeep ( m_axis_config_comm_fifo_tkeep ),
-    .m_axis_tlast ( m_axis_config_comm_fifo_tlast )
+    .s_axis_tready ( configComm_in.ready ),
+    .m_axis_tready ( comm_config.ready ),
+    .s_axis_tvalid ( configComm_in.valid ),
+    .s_axis_tdata ( configComm_in.data ),
+    .m_axis_tvalid ( comm_config.valid ),
+    .m_axis_tdata ( comm_config.data )
 );
 
 communicator_ip communicator_ip_inst (
     .ap_clk(aclk),
     .ap_rst_n(aresetn),
-    .commConfigCmd_TDATA(m_axis_config_comm_fifo_tdata),
-    .commConfigCmd_TVALID(m_axis_config_comm_fifo_tvalid),
-    .commConfigCmd_TREADY(m_axis_config_comm_fifo_tready),
-    .commConfigCmd_TKEEP(m_axis_config_comm_fifo_tkeep),
-    .commConfigCmd_TSTRB(0),
-    .commConfigCmd_TLAST(m_axis_config_comm_fifo_tlast),
-    .commLookupReq_TDATA(lookup_req_tdata),
-    .commLookupReq_TVALID(lookup_req_tvalid),
-    .commLookupReq_TREADY(lookup_req_tready),
-    .commLookupResp_TDATA(lookup_resp_tdata),
-    .commLookupResp_TVALID(lookup_resp_tvalid),
-    .commLookupResp_TREADY(lookup_resp_tready)
+    .commConfigCmd_TDATA(comm_config.data),
+    .commConfigCmd_TVALID(comm_config.valid),
+    .commConfigCmd_TREADY(comm_config.ready),
+    .commLookupReq_TDATA(lookup_req.data),
+    .commLookupReq_TVALID(lookup_req.valid),
+    .commLookupReq_TREADY(lookup_req.ready),
+    .commLookupResp_TDATA(lookup_resp.data),
+    .commLookupResp_TVALID(lookup_resp.valid),
+    .commLookupResp_TREADY(lookup_resp.ready)
 );
 
 

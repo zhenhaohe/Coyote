@@ -52,12 +52,10 @@ typedef ap_axiu<DWIDTH8, 0, 0, 0> pkt8;
 #define WIDTH 256
 
 void auth_key_handler(
-               hls::stream<ap_uint<WIDTH> >& init_key_strm_in,
                hls::stream<ap_uint<32> >& key_resp_out, 
                hls::stream<ap_uint<32> >& key_lookup_in
                 )
 {
-#pragma HLS INTERFACE axis register  port=init_key_strm_in
 #pragma HLS INTERFACE axis register  port=key_resp_out
 #pragma HLS INTERFACE axis register  port=key_lookup_in
 #pragma HLS INTERFACE ap_ctrl_none port=return
@@ -65,11 +63,7 @@ void auth_key_handler(
 #pragma HLS PIPELINE II=1
 #pragma HLS INLINE off
 
-    static ap_uint<WIDTH> key_cache [MAX_NUM_RANK]; 
-    #pragma HLS RESOURCE variable=key_cache core=RAM_1P_LUTRAM
-	#pragma HLS DEPENDENCE variable=key_cache inter false
-
-	enum StateType {IDLE, CLEAR_KEY, INIT_KEY, LOOKUP_KEY};
+	enum StateType {IDLE, LOOKUP_KEY};
     static StateType State = IDLE;
 
     static ap_uint<16> cnt = 0;
@@ -77,58 +71,24 @@ void auth_key_handler(
     switch(State)
     {
         case IDLE:
-            if (!init_key_strm_in.empty())
-            {
-                State = CLEAR_KEY;
-            } else if (!key_lookup_in.empty())
+            if (!key_lookup_in.empty())
             {
                 State = LOOKUP_KEY;
             }
-        break;
-        case CLEAR_KEY:
-            key_cache[cnt] = 0;
-            cnt ++;
-            if (cnt == MAX_NUM_RANK)
-            {
-                cnt = 0;
-                State = INIT_KEY;
-            }
-        break;
-        case INIT_KEY:
-            if (!init_key_strm_in.empty())
-            {
-                ap_uint<WIDTH> currWord = init_key_strm_in.read();
-                key_cache[cnt] = currWord;
-                #ifndef __SYNTHESIS__
-                std::cout<<"INIT_KEY "<<cnt<<" "<<std::hex<<currWord<<std::endl;
-                #endif
-                cnt ++;
-                if (cnt == MAX_NUM_RANK)
-                {
-                    State = IDLE;
-                    cnt = 0;
-                }
-            } 
         break;
         case LOOKUP_KEY:
             if (!key_lookup_in.empty())
             {
                 ap_uint<32> index = key_lookup_in.read();
-                ap_uint<WIDTH> currWord = key_cache[index];
                 for(int i=0; i<WIDTH/32; i++)
                 {
-                    ap_uint<32> out = currWord((i+1)*32-1,i*32);
+                    ap_uint<32> out = index;
                     key_resp_out.write(out);
                     if (i == WIDTH/32 - 1) {
                         State = IDLE;
-                        #ifndef __SYNTHESIS__
-                        std::cout<<"LOOKUP_KEY "<<index<<" "<<std::hex<<key_cache[index]<<std::endl;
-                        #endif
                     }
                 }
             } 
         break;
     }
-
-
 }

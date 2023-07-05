@@ -7,10 +7,6 @@
 # IP Integrator Tcl commands easier.
 ################################################################
 
-# vivado -mode batch -source build_tcp_intf_vitis_hls.tcl -tclargs xcu250-figd2104-2L-e
-
-# set device [lindex $argv 0]
-
 namespace eval _tcl {
 proc get_script_folder {} {
    set script_path [file normalize [info script]]
@@ -856,6 +852,9 @@ proc create_root_design { parentCell } {
 ##################################################################
 
 create_root_design ""
+
+make_wrapper -files [get_files $build_dir/lynx/lynx.srcs/sources_1/bd/tcp_intf/tcp_intf.bd] -top
+add_files -norecurse $build_dir/lynx/lynx.gen/sources_1/bd/tcp_intf/hdl/tcp_intf_wrapper.v
 
 # ipx::package_project -root_dir $script_folder/build_tcp_intf -vendor user.org -library user -taxonomy /UserIP -module tcp_intf
 # set_property core_revision 2 [ipx::find_open_core user.org:user:tcp_intf:1.0]

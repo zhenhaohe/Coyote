@@ -48,7 +48,7 @@ typedef ap_axiu<DWIDTH32, 0, 0, 0> pkt32;
 typedef ap_axiu<DWIDTH16, 0, 0, 0> pkt16;
 typedef ap_axiu<DWIDTH8, 0, 0, 0> pkt8;
 
-void duplicate_meta_64(	
+void duplicate_meta_32(	
                         hls::stream<ap_uint<32> >& in,
                         hls::stream<ap_uint<32>>& out0,
                         hls::stream<ap_uint<32>>& out1

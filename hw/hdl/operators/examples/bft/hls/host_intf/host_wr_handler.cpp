@@ -71,11 +71,7 @@ void host_wr_handler(
 #pragma HLS INTERFACE axis register  port=wr_data
 #pragma HLS INTERFACE axis register  port=wr_meta
 #pragma HLS INTERFACE axis register  port=buff_cmd
-
-#pragma HLS INTERFACE ap_none register port=base_addr
-#pragma HLS INTERFACE ap_none register port=buff_size
 #pragma HLS INTERFACE ap_none register port=ap_clr_pulse
-
 
 #pragma HLS INTERFACE ap_ctrl_none port=return
 

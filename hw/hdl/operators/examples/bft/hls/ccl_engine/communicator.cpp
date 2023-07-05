@@ -51,7 +51,7 @@ typedef ap_axiu<DWIDTH16, 0, 0, 0> pkt16;
 typedef ap_axiu<DWIDTH8, 0, 0, 0> pkt8;
 
 void communicator(
-                hls::stream<pkt512 >& commConfigCmd,
+                hls::stream<ap_uint<64> >& commConfigCmd,
                 hls::stream<commLookupReqType >& commLookupReq,
                 hls::stream<commLookupRespType >& commLookupResp
                 )
@@ -73,11 +73,11 @@ static rankTableEntryType rankTable[MAX_NUM_RANK];
 #pragma HLS bind_storage variable=rankTable type=RAM_2P impl=LUTRAM
 #pragma HLS DEPENDENCE variable=rankTable inter false
 
-    static ap_uint<32> procWord = 0;
+    static ap_uint<16> procWord = 0;
 
     static rankTableEntryType rankTableEntry;
 
-    static ap_uint<32> rankTableAddr;
+    static ap_uint<16> rankTableAddr;
 
     static commLookupReqType req;
 
@@ -103,15 +103,12 @@ static rankTableEntryType rankTable[MAX_NUM_RANK];
         if (!commConfigCmd.empty())
         {
             
-            pkt512 currCmdWord = commConfigCmd.read();
+            ap_uint<64> currCmdWord = commConfigCmd.read();
             rankTableEntry.valid = 1;
-            rankTableEntry.totalRank = currCmdWord.data(31,0);
-            rankTableEntry.localRank = currCmdWord.data(63,32);
-            rankTableEntry.currRank = currCmdWord.data(95,64);
-            rankTableEntry.ip = currCmdWord.data(127,96);
-            rankTableEntry.port = currCmdWord.data(159,128);
-            rankTableEntry.session = currCmdWord.data(191,160);
-            rankTableEntry.rsvd = currCmdWord.data(223,192);
+            rankTableEntry.totalRank = currCmdWord(15,0);
+            rankTableEntry.localRank = currCmdWord(31,16);
+            rankTableEntry.currRank = currCmdWord(47,32);
+            rankTableEntry.session = currCmdWord(63,48);
             rankTableAddr = rankTableEntry.currRank;
             rankTable[rankTableAddr] = rankTableEntry;
             procWord ++;
@@ -133,10 +130,7 @@ static rankTableEntryType rankTable[MAX_NUM_RANK];
         rankTableEntry.totalRank = 0;
         rankTableEntry.localRank = 0;
         rankTableEntry.currRank = 0;
-        rankTableEntry.ip = 0;
-        rankTableEntry.port = 0;
         rankTableEntry.session = 0;
-        rankTableEntry.rsvd = 0;
         rankTable[procWord] = rankTableEntry;
         procWord ++;
         if (procWord == MAX_NUM_RANK)
@@ -153,7 +147,7 @@ static rankTableEntryType rankTable[MAX_NUM_RANK];
                     rankTableEntry = rankTable[i*MAX_NUM_RANK+j];
                     if (rankTableEntry.valid)
                     {
-                        std::cout<<"Entry: "<<j<<" total rank: "<<rankTableEntry.totalRank<<" local rank: "<<rankTableEntry.localRank<<" currRank: "<<rankTableEntry.currRank<<", IP: "<<rankTableEntry.ip<<", port:"<<rankTableEntry.port<<", session:"<<rankTableEntry.session<<std::endl;
+                        std::cout<<"Entry: "<<j<<" total rank: "<<rankTableEntry.totalRank<<" local rank: "<<rankTableEntry.localRank<<" currRank: "<<rankTableEntry.currRank<<", session:"<<rankTableEntry.session<<std::endl;
                     } 
                 }
             }            

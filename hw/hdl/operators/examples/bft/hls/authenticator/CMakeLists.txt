@@ -32,7 +32,6 @@ endfunction()
 
 foreach (target ${HLS_TARGETS})
     add_custom_target_with_dependency(${target} hmac_eLen_handler)
-    add_custom_target_with_dependency(${target} auth_key_bcast_handler)
     add_custom_target_with_dependency(${target} auth_key_handler)
     add_custom_target_with_dependency(${target} auth_pipe_out_handler)
 endforeach()

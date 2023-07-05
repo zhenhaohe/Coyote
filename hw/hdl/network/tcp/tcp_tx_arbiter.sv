@@ -29,6 +29,9 @@
 
 import lynxTypes::*;
 
+`include "axi_macros.svh"
+`include "lynx_macros.svh"
+
 /**
  * @brief   TX arbitration
  * 

@@ -37,8 +37,17 @@ module auth_pipe
 )
 (
     
-    AXI4SR.s                    auth_in,
-    AXI4S.m                     auth_out,
+    input wire                  auth_in_tvalid,
+    input wire                  auth_in_tlast,
+    output wire                 auth_in_tready,
+    input wire [511:0]          auth_in_tdata,
+    input wire [63:0]           auth_in_tkeep,
+
+    output wire                 auth_out_tvalid,
+    output wire                 auth_out_tlast,
+    input wire                  auth_out_tready,
+    output wire [511:0]         auth_out_tdata,
+    output wire [63:0]          auth_out_tkeep,
 
     // Clock and reset
     input  wire                 aclk,
@@ -46,10 +55,9 @@ module auth_pipe
 
 );
 
-AXI4SR #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) auth_in_s0();
-
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) s_axis_msg_input_fifo();
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) m_axis_msg_input_fifo();
+AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) auth_in_s0();
+AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) auth_in_s1();
+AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) auth_in_s2();
 
 AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) auth_msg_s0();
 AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) auth_msg_s1();
@@ -61,82 +69,40 @@ metaIntf #(.STYPE(logic[64-1:0])) auth_meta_s0();
 AXI4S #(.AXI4S_DATA_BITS(32)) auth_msg_w32_s0();
 AXI4S #(.AXI4S_DATA_BITS(32)) auth_msg_w32_s1();
 
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) axis_key_config_w512();
-
-metaIntf #(.STYPE(logic[256-1:0])) key_config_w256();
-
 metaIntf #(.STYPE(logic[256-1:0])) auth_hsh();
 
 AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) auth_out_s0();
 
+assign auth_in_s0.tvalid = auth_in_tvalid;
+assign auth_in_s0.tdata = auth_in_tdata;
+assign auth_in_s0.tkeep = auth_in_tkeep;
+assign auth_in_s0.tlast = auth_in_tlast;
+assign auth_in_tready = auth_in_s0.tready;
+
 // register input
-axisr_reg_array #(.N_STAGES(3)) inst_auth_in_reg_array (.aclk(aclk), .aresetn(aresetn), .s_axis(auth_in), .m_axis(auth_in_s0));
-
-
-// Use the tid side channel to distinguish whether input is key init stream or auth message stream
-// tid - 0: auth message stream - 1: auth key init stream
-localparam integer NUM_SWITCH_M_AXI = 2;
-localparam integer NUM_SWITCH_M_AXI_BITS = $clog2(NUM_SWITCH_M_AXI);
-
-logic [NUM_SWITCH_M_AXI-1:0] m_axis_input_switch_tvalid;
-logic [NUM_SWITCH_M_AXI-1:0] m_axis_input_switch_tready;
-logic [NUM_SWITCH_M_AXI-1:0] m_axis_input_switch_tlast;
-logic [NUM_SWITCH_M_AXI*512-1:0] m_axis_input_switch_tdata;
-logic [NUM_SWITCH_M_AXI*64-1:0] m_axis_input_switch_tkeep;
-logic [NUM_SWITCH_M_AXI*NUM_SWITCH_M_AXI_BITS-1:0] m_axis_input_switch_tdest;
-
-axis_switch_width_512_1_to_2 axis_switch_width_512_1_to_2_inst (
-	.aclk ( aclk ),
-	.aresetn ( aresetn ),
-	.s_axis_tready ( auth_in_s0.tready ),
-	.m_axis_tready ( m_axis_input_switch_tready ),
-	.s_axis_tvalid ( auth_in_s0.tvalid ),
-	.s_axis_tdata ( auth_in_s0.tdata ),
-	.s_axis_tkeep ( auth_in_s0.tkeep ),
-	.s_axis_tlast ( auth_in_s0.tlast ),
-	.s_axis_tdest ( auth_in_s0.tid ), // use tid as the dest signal for the axi switch
-	.m_axis_tvalid ( m_axis_input_switch_tvalid ),
-	.m_axis_tdata ( m_axis_input_switch_tdata ),
-	.m_axis_tkeep ( m_axis_input_switch_tkeep ),
-	.m_axis_tlast ( m_axis_input_switch_tlast ),
-	.m_axis_tdest ( m_axis_input_switch_tdest ),
-	.s_decode_err ( )
-);
-
-// auth message stream pipeline
-// tid - 0: auth message stream
-// the first word of the message contains header, containing index&len information: | Payload | Header |
-// the index&len information are queued in very small fifos
-// the message payload is converted from 512 bits to 32 bits block for auth module
-
-
-assign s_axis_msg_input_fifo.tvalid = m_axis_input_switch_tvalid[0];
-assign m_axis_input_switch_tready[0] = s_axis_msg_input_fifo.tready;
-assign s_axis_msg_input_fifo.tlast = m_axis_input_switch_tlast[0];
-assign s_axis_msg_input_fifo.tdata = m_axis_input_switch_tdata[(0+1)*512-1:0*512];
-assign s_axis_msg_input_fifo.tkeep = m_axis_input_switch_tkeep[(0+1)*64-1:0*64];
+axis_reg_array #(.N_STAGES(3)) inst_auth_in_reg_array (.aclk(aclk), .aresetn(aresetn), .s_axis(auth_in_s0), .m_axis(auth_in_s1));
 
 axis_data_fifo_width_512_depth_64 auth_pipeline_input_fifo (
     .s_axis_aclk ( aclk ),
     .s_axis_aresetn ( aresetn ),
-    .s_axis_tready ( s_axis_msg_input_fifo.tready ),
-    .m_axis_tready ( m_axis_msg_input_fifo.tready ),
-    .s_axis_tvalid ( s_axis_msg_input_fifo.tvalid ),
-    .s_axis_tdata ( s_axis_msg_input_fifo.tdata ),
-    .s_axis_tkeep ( s_axis_msg_input_fifo.tkeep ),
-    .s_axis_tlast ( s_axis_msg_input_fifo.tlast ),
-    .m_axis_tvalid ( m_axis_msg_input_fifo.tvalid ),
-    .m_axis_tdata ( m_axis_msg_input_fifo.tdata ),
-    .m_axis_tkeep ( m_axis_msg_input_fifo.tkeep ),
-    .m_axis_tlast ( m_axis_msg_input_fifo.tlast )
+    .s_axis_tready ( auth_in_s1.tready ),
+    .m_axis_tready ( auth_in_s2.tready ),
+    .s_axis_tvalid ( auth_in_s1.tvalid ),
+    .s_axis_tdata ( auth_in_s1.tdata ),
+    .s_axis_tkeep ( auth_in_s1.tkeep ),
+    .s_axis_tlast ( auth_in_s1.tlast ),
+    .m_axis_tvalid ( auth_in_s2.tvalid ),
+    .m_axis_tdata ( auth_in_s2.tdata ),
+    .m_axis_tkeep ( auth_in_s2.tkeep ),
+    .m_axis_tlast ( auth_in_s2.tlast )
 );
 
 bft_meta_gen_ip auth_meta_gen_inst (
-    .s_axis_TREADY ( m_axis_msg_input_fifo.tready ),
-    .s_axis_TVALID ( m_axis_msg_input_fifo.tvalid ),
-    .s_axis_TDATA ( m_axis_msg_input_fifo.tdata ),
-    .s_axis_TKEEP ( m_axis_msg_input_fifo.tkeep ),
-    .s_axis_TLAST ( m_axis_msg_input_fifo.tlast ),
+    .s_axis_TREADY ( auth_in_s2.tready ),
+    .s_axis_TVALID ( auth_in_s2.tvalid ),
+    .s_axis_TDATA ( auth_in_s2.tdata ),
+    .s_axis_TKEEP ( auth_in_s2.tkeep ),
+    .s_axis_TLAST ( auth_in_s2.tlast ),
     .s_axis_TSTRB (0),
     .m_meta_TVALID (auth_meta_s0.valid),
     .m_meta_TREADY (auth_meta_s0.ready),
@@ -176,16 +142,13 @@ axis_dwidth_converter_512_to_32 dwidth_payload_converter_512_to_32 (
 );
 
 
-
 auth_hmac_wrapper #( 
-    .PIPE_INDEX(PIPE_INDEX),
-    .DEBUG(DEBUG)
+    .PIPE_INDEX(PIPE_INDEX)
 )auth_hmac_wrapper (
     .aclk ( aclk ),
     .aresetn ( aresetn ),
-    .s_config (key_config_w256),
     .s_msg (auth_msg_w32_s0),
-    .m_smg (auth_msg_w32_s1),
+    .m_msg (auth_msg_w32_s1),
     .s_meta (auth_meta_s0),
     .m_hsh (auth_hsh)
 );
@@ -250,27 +213,13 @@ axis_register_slice_width_512 reg_slice_512 (
     .s_axis_tready ( auth_out_s0.tready ),
     .s_axis_tvalid ( auth_out_s0.tvalid ),
     .s_axis_tdata ( auth_out_s0.tdata ),
-    .m_axis_tkeep ( auth_out.tkeep ),
-    .m_axis_tlast ( auth_out.tlast ),
-    .m_axis_tready ( auth_out.tready ),
-    .m_axis_tvalid ( auth_out.tvalid ),
-    .m_axis_tdata ( auth_out.tdata )
+    .m_axis_tkeep ( auth_out_tkeep ),
+    .m_axis_tlast ( auth_out_tlast ),
+    .m_axis_tready ( auth_out_tready ),
+    .m_axis_tvalid ( auth_out_tvalid ),
+    .m_axis_tdata ( auth_out_tdata )
 );
 
-
-// auth key init stream pipeline
-// tid - 0: auth message stream - 1: auth key init stream
-// the actual payload is 256 bit per word
-
-assign axis_key_config_w512.tvalid = m_axis_input_switch_tvalid[1];
-assign m_axis_input_switch_tready[1] = axis_key_config_w512.tready;
-assign axis_key_config_w512.tlast = m_axis_input_switch_tlast[1];
-assign axis_key_config_w512.tdata = m_axis_input_switch_tdata[(1+1)*512-1:1*512];
-assign axis_key_config_w512.tkeep = m_axis_input_switch_tkeep[(1+1)*64-1:1*64];
-
-assign key_config_w256.valid = axis_key_config_w512.tvalid;
-assign key_config_w256.data = axis_key_config_w512.tdata;
-assign axis_key_config_w512.tready = key_config_w256.ready;
 
 `ifdef DEBUG_AUTH_PIPE
     if (PIPE_INDEX == 0) begin
@@ -283,18 +232,18 @@ assign axis_key_config_w512.tready = key_config_w256.ready;
             .probe2(auth_msg_s0.tlast), //1
             .probe3(auth_msg_s0.tdata), // 512
             // internal
-            .probe4(auth_hsh.valid), //1
-            .probe5(auth_hsh.ready), //1
-            .probe6(auth_hsh.valid), //1
-            .probe7(auth_hsh.ready), // 1
+            .probe4(auth_msg_w32_s0.valid), //1
+            .probe5(auth_msg_w32_s0.ready), //1
+            .probe6(auth_msg_s3.valid), //1
+            .probe7(auth_msg_s3.ready), // 1
             // meta
             .probe8(auth_meta_s0.valid), // 1
             .probe9(auth_meta_s0.ready), //1
             .probe10(auth_meta_s0.data), // 64
-            // init key
-            .probe11(key_config_w256.valid), //1
-            .probe12(key_config_w256.ready), //1
-            .probe13(key_config_w256.data), //256
+            // hsh
+            .probe11(auth_hsh.valid), //1
+            .probe12(auth_hsh.ready), //1
+            .probe13(auth_hsh.data), //256
 
             // auth output
             .probe14(auth_out_s0.tdata), //512

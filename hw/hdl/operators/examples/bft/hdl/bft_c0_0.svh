@@ -62,7 +62,7 @@ axisr_reg_array #(.N_STAGES(2)) inst_axis_host_0_sink_reg_array (.aclk(aclk), .a
 AXI4SR #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) axis_host_0_src_reg();
 axisr_reg_array #(.N_STAGES(2)) inst_axis_host_0_src_reg_array (.aclk(aclk), .aresetn(aresetn), .s_axis(axis_host_0_src_reg), .m_axis(axis_host_0_src));
 
-host_intf_wrapper host_intf_wrapper_inst(
+host_wrapper host_intf_wrapper_inst(
     // DESCRIPTOR BYPASS
     .bpss_rd_req(bpss_rd_req),
     .bpss_wr_req(bpss_wr_req),
@@ -103,12 +103,11 @@ meta_reg_array #(.N_STAGES(5), .DATA_BITS(64)) inst_netRxMeta_reg_array (.aclk(a
 axis_reg_array #(.N_STAGES(5)) inst_netTxData_reg_array (.aclk(aclk), .aresetn(aresetn), .s_axis(netTxData), .m_axis(netTxData_reg));
 meta_reg_array #(.N_STAGES(5), .DATA_BITS(64)) inst_netTxMeta_reg_array (.aclk(aclk), .aresetn(aresetn), .s_meta(netTxMeta), .m_meta(netTxMeta_reg));
 
-tcp_intf_wrapper tcp_intf_wrapper_inst(
+tcp_wrapper tcp_intf_wrapper_inst(
     // control
     .ap_clr_pulse(ap_clr_pulse),
     .maxPkgWord(maxPkgWord),
     
-
     // User Interface
     .open_con_cmd(open_con_cmd),
     .open_port_cmd(open_port_cmd),
@@ -154,20 +153,19 @@ tcp_intf_wrapper tcp_intf_wrapper_inst(
 AXI4L #(.AXI4L_DATA_BITS(64)) axi_ctrl_cnfg ();
 AXI4L #(.AXI4L_DATA_BITS(64)) axi_ctrl_user ();
 
-accl_ctrl_xbar inst_accl_xbar (
+bft_ctrl_xbar bft_ctrl_xbar_inst (
     .aclk(aclk),
     .aresetn(aresetn),
-
     .s_axi_ctrl(axi_ctrl),
     .m_axi_ctrl_cnfg(axi_ctrl_cnfg),
     .m_axi_ctrl_user(axi_ctrl_user)
 );
 
 
-bench_role bench_role
+bench_role bench_role_inst
 (
     // control
-    .axi_ctrl_user(axi_ctrl_user),
+    .s_axi_ctrl(axi_ctrl_user),
 
     // TCP
     .netTxData(netTxData),
@@ -207,9 +205,9 @@ bft_coyote_bench_slave bft_coyote_bench_slave_inst (
 	.open_port_sts_tdata (open_port_sts.data), // [7:0] success
 	.open_port_sts_tvalid (open_port_sts.valid),
 	.open_port_sts_tready (open_port_sts.ready),
-    .buff_cmd_tdata(buff_cmd.tdata), // [47:0] base address offset, [63:48] size in KB
-    .buff_cmd_tvalid(buff_cmd.tvalid),
-    .buff_cmd_tready(buff_cmd.tready),
+    .buff_cmd_tdata(buff_cmd.data), // [47:0] base address offset, [63:48] size in KB
+    .buff_cmd_tvalid(buff_cmd.valid),
+    .buff_cmd_tready(buff_cmd.ready),
 
     // config register
     .maxPkgWord (maxPkgWord),

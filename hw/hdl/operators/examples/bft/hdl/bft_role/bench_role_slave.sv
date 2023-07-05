@@ -40,6 +40,8 @@ module bench_role_slave (
 	output logic 									                ap_clr,
   input logic 									                ap_done,
 
+  metaIntf.m                                    comm_meta,
+
   input bft_tx_stat_t                           bft_tx_stat,
   input bft_rx_stat_t                           bft_rx_stat,
 
@@ -99,6 +101,7 @@ localparam integer RX_AUTH_OFFLOAD_DOWN = 13;
 localparam integer EXECUTION_CYCLES = 14;
 localparam integer EXP_TX_NET_PKT = 15;
 localparam integer EXP_RX_NET_PKT = 16;
+localparam integer COMMUNICATOR = 17;
 
 
 // Write process
@@ -109,10 +112,11 @@ always_ff @(posedge aclk, negedge aresetn) begin
     for (int i = 0; i < N_REGS; i++) begin
       slv_reg[i] <= 0;
     end 
+    comm_meta.valid <= 1'b0;
   end
   else begin
     slv_reg[0][0] <= 0;
-
+    comm_meta.valid <= 1'b0;
     if(slv_reg_wren) begin
       case (axi_awaddr[ADDR_LSB+ADDR_MSB-1:ADDR_LSB])
         CONTROL : begin // Control
@@ -136,6 +140,16 @@ always_ff @(posedge aclk, negedge aresetn) begin
             end
           end
         end
+        COMMUNICATOR : begin // communicator
+          for (int i = 0; i < AXIL_DATA_BITS/8; i++) begin
+            if(axi_ctrl.wstrb[i]) begin
+              slv_reg[COMMUNICATOR][(i*8)+:8] <= axi_ctrl.wdata[(i*8)+:8];
+            end
+          end
+          if (axi_ctrl.wstrb != 0) begin
+            comm_meta.valid <= 1'b1;
+          end
+        end
         default : ;
       endcase
     end
@@ -147,6 +161,7 @@ always_comb begin
   ap_clr = slv_reg[CONTROL][0];
   exp_tx_net_pkt = slv_reg[EXP_TX_NET_PKT];
   exp_rx_net_pkt = slv_reg[EXP_RX_NET_PKT];
+  comm_meta.data = slv_reg[COMMUNICATOR];
 end
 
 // Read process
