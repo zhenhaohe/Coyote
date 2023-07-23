@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.0)
-project(main)
+project(bft)
 
 # Includes
-include_directories(${CMAKE_SOURCE_DIR}/include ${TARGET_DIR}/include)
+include_directories(${CMAKE_SOURCE_DIR}/../include ${CMAKE_SOURCE_DIR}/../../../include)
 
 # Sources
-file(GLOB SOURCES ${TARGET_DIR}/*.cpp ${TARGET_DIR}/src/*.cpp ${CMAKE_SOURCE_DIR}/src/*.cpp)
+file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/*.cpp ${CMAKE_SOURCE_DIR}/../src/*.cpp ${CMAKE_SOURCE_DIR}/../../../src/*.cpp)
 
 # AVX support (Disable on Enzian)
 set(EN_AVX 1 CACHE STRING "AVX environment.")
@@ -24,6 +24,13 @@ endif()
 # Boost lib
 find_package(Boost COMPONENTS program_options REQUIRED)
 
+# MPI
+find_package(MPI REQUIRED)
+message(STATUS "MPI Include Path: ${MPI_CXX_INCLUDE_PATH}")
+
+
 # Targets
 add_executable(${EXEC} ${SOURCES})
-target_link_libraries(${EXEC} ${Boost_LIBRARIES})
+target_link_libraries(${EXEC} ${Boost_LIBRARIES} MPI::MPI_CXX)
+target_include_directories(${EXEC} PUBLIC ${MPI_CXX_INCLUDE_PATH})
+

@@ -43,7 +43,7 @@ using namespace std;
 #define DWIDTH8 8
 
 #ifndef __SYNTHESIS__
-void printPktWordByByte (net_axis<512> currWord);
+void printPktWordByByte (pkt512 currWord);
 #endif
 
 typedef ap_axiu<DWIDTH512, 0, 0, 0> pkt512;
@@ -53,126 +53,6 @@ typedef ap_axiu<DWIDTH64, 0, 0, 0> pkt64;
 typedef ap_axiu<DWIDTH32, 0, 0, 0> pkt32;
 typedef ap_axiu<DWIDTH16, 0, 0, 0> pkt16;
 typedef ap_axiu<DWIDTH8, 0, 0, 0> pkt8;
-
-
-// Parse the msgHeader and get the total length of the header
-// The header is forwarded to a small buffer, the offset and the stream is forwarded to the left shifter
-// The the header and the shifted stream are merged
-
-void parseHeader(
-                hls::stream<headerType >& msgHeaderIn,
-                hls::stream<net_axis<512> >& streamIn,
-                hls::stream<headerType >& msgHeaderOut,
-                hls::stream<net_axis<512> >& streamOut,
-                hls::stream<ap_uint<16> >& streamOutOffset
-                )
-{
-#pragma HLS PIPELINE II=1
-#pragma HLS INLINE off
-
-    static net_axis<512> currWord;
-
-    static headerType headerWord;
-
-    static ap_uint<32> offset = 0;
-
-    enum StateType {HEADER, PAYLOAD};
-    static StateType State = HEADER;
-
-    switch(State)
-    {
-        case HEADER:
-            if (!msgHeaderIn.empty())
-            {
-                headerWord = msgHeaderIn.read();
-                offset = headerWord.cmdLen;
-                msgHeaderOut.write(headerWord);
-                State = PAYLOAD;
-            }
-        break;
-        case PAYLOAD:
-            if(!streamIn.empty())
-            {
-                currWord = streamIn.read();
-                streamOut.write(currWord);
-                streamOutOffset.write(offset);
-                if(currWord.last)
-                {
-                    State = HEADER;
-                }
-            }
-        break;
-    }
-}
-
-void insertHeader(
-                hls::stream<headerType >& msgHeaderIn,
-                hls::stream<net_axis<512> >& strmIn,
-                hls::stream<net_axis<512> >& strmOut
-                )
-{
-#pragma HLS PIPELINE II=1
-#pragma HLS INLINE off
-
-    enum fsmStateType {FIRST_WORD, REST};
-    static fsmStateType  fsmState = FIRST_WORD;
-
-    static net_axis<512> currWord;
-
-    static headerType header;
-
-    switch (fsmState)
-    {
-    case FIRST_WORD:
-        if (!strmIn.empty() & !msgHeaderIn.empty())
-        {
-            header = msgHeaderIn.read();
-            
-            ap_uint<512> headerWord = 0;
-            headerWord(31,0) = header.cmdID; 
-            headerWord(63,32) = header.cmdLen; 
-            headerWord(95,64) = header.dst; 
-            headerWord(127,96) = header.src; 
-            headerWord(159,128) = header.tag; 
-            headerWord(191,160) = header.dataLen; 
-            headerWord(223,192) = header.msgID;
-            headerWord(255,224) = header.msgType; 
-            headerWord(287,256) = header.epochID;
-            headerWord(319,288) = header.totalRank; 
-            
-            currWord = strmIn.read();
-            net_axis<512> outWord;
-            outWord.data = currWord.data | headerWord;
-            outWord.keep = currWord.keep | lenToKeep(header.cmdLen);
-            outWord.last = currWord.last;
-            strmOut.write(outWord);
-            if (!currWord.last)
-            {
-                fsmState = REST;
-            }
-            #ifndef __SYNTHESIS__
-			std::cout<<"insertHeader FIRST_WORD state: ";
-			printPktWordByByte(outWord);
-			#endif
-        }
-        break;
-    case REST:
-        if (!strmIn.empty())
-        {
-            net_axis<512> currWord = strmIn.read();
-            strmOut.write(currWord);
-            if (currWord.last)
-            {
-                fsmState = FIRST_WORD;
-            }
-            #ifndef __SYNTHESIS__
-			std::cout<<"insertHeader REST state: ";
-			printPktWordByByte(currWord);
-			#endif
-        }
-        break;
-    }
-}
 
 
 void bft_packetizer(
@@ -187,50 +67,44 @@ void bft_packetizer(
 #pragma HLS aggregate variable=s_meta compact=bit
 #pragma HLS INTERFACE ap_ctrl_none port=return
 
-#pragma HLS DATAFLOW disable_start_propagation
+#pragma HLS PIPELINE II=1
+#pragma HLS INLINE off
+
+    static pkt512 currWord;
+
+    static headerType headerWord;
 
 
-    static hls::stream<net_axis<512> > m_axis_internal;
-	#pragma HLS STREAM depth=2 variable=m_axis_internal
-    static hls::stream<net_axis<512> > s_axis_internal;
-	#pragma HLS STREAM depth=2 variable=s_axis_internal
+    enum StateType {HEADER, PAYLOAD};
+    static StateType State = HEADER;
 
-	convert_net_axis_to_axis<512>(m_axis_internal, 
-							m_axis);
+    switch(State)
+    {
+        case HEADER:
+            if (!s_meta.empty())
+            {
+                currWord.data = 0;
+                currWord.keep = 0xFFFFFFFFFFFFFFFF;
+                currWord.last = 0;
 
-	convert_axis_to_net_axis<512>(s_axis,
-                            s_axis_internal);
+                headerWord = s_meta.read();
+                currWord.data(HEADER_LENGTH-1,0) = (ap_uint<HEADER_LENGTH>)headerWord;
 
-    static hls::stream<headerType > headerTmp;
-	#pragma HLS STREAM depth=2 variable=headerTmp
-
-    static hls::stream<net_axis<512> > streamTmp1;
-    #pragma HLS stream variable=streamTmp1 depth=2
-    static hls::stream<ap_uint<16> > streamTmpOffset1;
-    #pragma HLS stream variable=streamTmpOffset1 depth=2
-    static hls::stream<net_axis<512> > streamTmp2;
-    #pragma HLS stream variable=streamTmp2 depth=2
-
-                
-    parseHeader(
-                s_meta,
-                s_axis_internal,
-                headerTmp,
-                streamTmp1,
-                streamTmpOffset1
-                );
-
-    lshiftWordByOctet<net_axis<512>, 512, 1>(
-                streamTmpOffset1, 
-                streamTmp1, 
-                streamTmp2
-                );
-
-    insertHeader(
-                headerTmp,
-                streamTmp2,
-                m_axis_internal
-                );
-
+                m_axis.write(currWord);
+                State = PAYLOAD;
+            }
+        break;
+        case PAYLOAD:
+            if(!s_axis.empty())
+            {
+                currWord = s_axis.read();
+                m_axis.write(currWord);
+                if(currWord.last)
+                {
+                    State = HEADER;
+                }
+            }
+        break;
+    }
     
 }

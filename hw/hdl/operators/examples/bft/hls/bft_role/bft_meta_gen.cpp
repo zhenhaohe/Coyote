@@ -49,17 +49,19 @@ typedef ap_axiu<DWIDTH16, 0, 0, 0> pkt16;
 typedef ap_axiu<DWIDTH8, 0, 0, 0> pkt8;
 
 // Assume the header has the following format and generate the meta information
-// typedef struct packed {
-//         logic [31:0] epochID;
-//         logic [31:0] msgType;
-//         logic [31:0] msgID;
-//         logic [31:0] dataLen; //total byte len of data (payload+digest+auth) to each primitive
-//         logic [31:0] tag; // tag, reserved
-//         logic [31:0] src; // src rank
-//         logic [31:0] dst; // either dst rank or communicator ID depends on primitive
-//         logic [31:0] cmdLen; // total byte len of compulsory & optional cmd fields
-//         logic [31:0] cmdID; // specifier of different communication primitive
-//     } bft_hdr_t;
+// struct headerType
+// {
+//     ap_uint<32> cmdID; // specifier of different communication primitive
+//     ap_uint<32> cmdLen; // total byte len of compulsory & optional cmd fields
+//     ap_uint<32> dst; // either dst rank or communicator ID depends on primitive
+//     ap_uint<32> src; // src rank
+//     ap_uint<32> tag; // tag, reserved
+//     ap_uint<32> dataLen; //total byte len of data to each primitive
+//     ap_uint<32> msgID;
+//     ap_uint<32> msgType;
+//     ap_uint<32> epochID;
+//     ap_uint<32> totalRank;
+// };
 
 void bft_meta_gen (
             hls::stream<pkt512 >& s_axis,

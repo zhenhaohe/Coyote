@@ -51,8 +51,10 @@ module auth_role_wrapper #(
     input  wire[0:0]            aresetn
 );
 
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) auth_in();
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) auth_out();
+AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) auth_in_s0();
+AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) auth_in_s1();
+AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) auth_out_s0();
+AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) auth_out_s1();
 
 
 bft_packetizer_ip bft_auth_packetizer_inst(
@@ -67,13 +69,14 @@ bft_packetizer_ip bft_auth_packetizer_inst(
     .s_meta_TVALID (s_meta.valid),
     .s_meta_TREADY (s_meta.ready),
     .s_meta_TDATA (s_meta.data),
-    .m_axis_TREADY ( auth_in.tready ),
-    .m_axis_TVALID ( auth_in.tvalid ),
-    .m_axis_TDATA ( auth_in.tdata ),
-    .m_axis_TKEEP ( auth_in.tkeep ),
-    .m_axis_TLAST ( auth_in.tlast )
+    .m_axis_TREADY ( auth_in_s0.tready ),
+    .m_axis_TVALID ( auth_in_s0.tvalid ),
+    .m_axis_TDATA ( auth_in_s0.tdata ),
+    .m_axis_TKEEP ( auth_in_s0.tkeep ),
+    .m_axis_TLAST ( auth_in_s0.tlast )
 );
 
+axis_reg_array #(.N_STAGES(3)) inst_auth_in (.aclk(aclk), .aresetn(aresetn), .s_axis(auth_in_s0), .m_axis(auth_in_s1));
 
 auth_role #( 
   .NUM_ENGINE(NUM_ENGINE),
@@ -83,31 +86,33 @@ auth_role #(
     
     .num_engine(NUM_ENGINE),
 
-    .auth_in_tvalid(auth_in.tvalid),
-    .auth_in_tlast(auth_in.tlast),
-    .auth_in_tready(auth_in.tready),
-    .auth_in_tdata(auth_in.tdata),
-    .auth_in_tkeep(auth_in.tkeep),
+    .auth_in_tvalid(auth_in_s1.tvalid),
+    .auth_in_tlast(auth_in_s1.tlast),
+    .auth_in_tready(auth_in_s1.tready),
+    .auth_in_tdata(auth_in_s1.tdata),
+    .auth_in_tkeep(auth_in_s1.tkeep),
 
-    .auth_out_tvalid(auth_out.tvalid),
-    .auth_out_tlast(auth_out.tlast),
-    .auth_out_tready(auth_out.tready),
-    .auth_out_tdata(auth_out.tdata),
-    .auth_out_tkeep(auth_out.tkeep),
+    .auth_out_tvalid(auth_out_s0.tvalid),
+    .auth_out_tlast(auth_out_s0.tlast),
+    .auth_out_tready(auth_out_s0.tready),
+    .auth_out_tdata(auth_out_s0.tdata),
+    .auth_out_tkeep(auth_out_s0.tkeep),
 
     // Clock and reset
     .aclk(aclk),
     .aresetn(aresetn)
 );
 
+axis_reg_array #(.N_STAGES(3)) inst_auth_out (.aclk(aclk), .aresetn(aresetn), .s_axis(auth_out_s0), .m_axis(auth_out_s1));
+
 bft_depacketizer_ip bft_auth_depacketizer (
     .ap_clk(aclk),
     .ap_rst_n(aresetn),
-    .s_axis_TREADY ( auth_out.tready ),
-    .s_axis_TVALID ( auth_out.tvalid ),
-    .s_axis_TDATA ( auth_out.tdata ),
-    .s_axis_TKEEP ( auth_out.tkeep ),
-    .s_axis_TLAST ( auth_out.tlast ),
+    .s_axis_TREADY ( auth_out_s1.tready ),
+    .s_axis_TVALID ( auth_out_s1.tvalid ),
+    .s_axis_TDATA ( auth_out_s1.tdata ),
+    .s_axis_TKEEP ( auth_out_s1.tkeep ),
+    .s_axis_TLAST ( auth_out_s1.tlast ),
     .s_axis_TSTRB (0),
     .m_axis_TREADY ( m_axis.tready ),
     .m_axis_TVALID ( m_axis.tvalid ),

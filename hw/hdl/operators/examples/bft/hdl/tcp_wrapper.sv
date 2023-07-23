@@ -39,6 +39,8 @@ import bftTypes::*;
 module tcp_wrapper (
     // control
     input wire                  ap_clr_pulse,
+
+    // config
     input wire [63:0]           maxPkgWord,
 
     // User Interface

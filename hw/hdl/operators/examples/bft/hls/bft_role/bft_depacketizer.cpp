@@ -54,15 +54,13 @@ typedef ap_axiu<DWIDTH32, 0, 0, 0> pkt32;
 typedef ap_axiu<DWIDTH16, 0, 0, 0> pkt16;
 typedef ap_axiu<DWIDTH8, 0, 0, 0> pkt8;
 
-
-// Parse the msgHeader, this is specific to the msg structure
-// Any change in the msg structure requires a change in this FSM
+// Parse the msgHeader
 // The output of this FSM goes into a right shifter 
 // and the msgHeader will be removed
-void shiftHeader(
+
+void parseHeader(
                 hls::stream<net_axis<512> >& streamIn,
                 hls::stream<net_axis<512> >& streamOut,
-                hls::stream<ap_uint<16> >& streamOutOffset,
                 hls::stream<headerType >& msgHeader
                 )
 {
@@ -74,9 +72,7 @@ void shiftHeader(
     static headerType headerWord;
 
     static ap_uint<32> procWord = 0;
-    static ap_uint<32> offset = 0;
-    static ap_uint<32> procLen = 0;
-    static ap_uint<32> totalLen = 0;
+    static ap_uint<32> procDataLen = 0;
 
     static ap_uint<32> packetWord = 0;
  
@@ -85,52 +81,41 @@ void shiftHeader(
         currWord = streamIn.read();
 
         // If it is the first word 
-        // Assume msgHeader doesn't consume a full word
+        // Assume msgHeader not more than a full word
         if (procWord == 0)
         {
-            headerWord.cmdID = currWord.data(31,0); 
-            headerWord.cmdLen = currWord.data(63,32); 
-            headerWord.dst = currWord.data(95,64); 
-            headerWord.src = currWord.data(127,96); 
-            headerWord.tag = currWord.data(159,128); 
-            headerWord.dataLen = currWord.data(191,160); 
-            headerWord.msgID = currWord.data(223,192);
-            headerWord.msgType = currWord.data(255,224); 
-            headerWord.epochID = currWord.data(287,256); 
-            headerWord.totalRank = currWord.data(319,288);
+            headerWord = headerType(currWord.data(HEADER_LENGTH-1,0));
             msgHeader.write(headerWord);
 
-            //Shift all the msgHeader
-            offset = headerWord.cmdLen;
             packetWord = ((headerWord.cmdLen + headerWord.dataLen + 63) >> 6);
-            totalLen = headerWord.cmdLen + headerWord.dataLen;
+            procWord ++;
+
             #ifndef __SYNTHESIS__
-            std::cout<<"shiftHeader packetWord "<<std::dec<<packetWord<<std::endl;
+            std::cout<<"parseHeader packetWord "<<std::dec<<packetWord<<std::endl;
             #endif
+        } else {
+            net_axis<512> outWord;
+            outWord.data = currWord.data;
+            outWord.keep = currWord.keep;
+            outWord.last = 0;
+
+            procWord ++;
+            procDataLen = procDataLen + 64;
+
+            if (procDataLen > headerWord.dataLen)
+            {
+                outWord.keep = lenToKeep(headerWord.dataLen + 64 - procDataLen);
+                procDataLen = 0;
+            }
+
+            if (procWord == packetWord)
+            {
+                outWord.last = 1;
+                procWord = 0;
+            }                
+
+            streamOut.write(outWord);
         }
-        
-        net_axis<512> outWord;
-        outWord.data = currWord.data;
-        outWord.keep = currWord.keep;
-        outWord.last = 0;
-
-        procWord ++;
-        procLen = procLen + 64;
-
-        if (procLen > totalLen)
-        {
-            outWord.keep = lenToKeep(totalLen + 64 - procLen);
-            procLen = 0;
-        }
-
-        if (procWord == packetWord)
-        {
-            outWord.last = 1;
-            procWord = 0;
-        }                
-
-        streamOut.write(outWord);
-        streamOutOffset.write(offset);
     }
 }
 
@@ -159,29 +144,19 @@ void bft_depacketizer(
 
 	convert_net_axis_to_axis<512>(m_axis_internal, 
 							m_axis);
-
+    
     static hls::stream<net_axis<512> > streamTmp1;
     #pragma HLS stream variable=streamTmp1 depth=2
-    static hls::stream<ap_uint<16> > streamTmpOffset1;
-    #pragma HLS stream variable=streamTmpOffset1 depth=2
-    static hls::stream<net_axis<512> > streamTmp2;
-    #pragma HLS stream variable=streamTmp2 depth=2
 
                 
-    shiftHeader(
+    parseHeader(
             s_axis_internal,
             streamTmp1,
-            streamTmpOffset1,
             m_meta
             );
 
-    rshiftWordByOctet<net_axis<512>, 512, 1>(
-                streamTmpOffset1, 
-                streamTmp1, 
-                streamTmp2);
-
     maskDataFromKeep<1>(   
-                streamTmp2,
+                streamTmp1,
                 m_axis_internal
     );
 

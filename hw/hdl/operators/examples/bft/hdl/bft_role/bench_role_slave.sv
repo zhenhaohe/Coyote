@@ -37,7 +37,7 @@ module bench_role_slave (
 	
 	AXI4L.s                                       axi_ctrl,
 
-	output logic 									                ap_clr,
+	output logic 									                ap_start,
   input logic 									                ap_done,
 
   metaIntf.m                                    comm_meta,
@@ -158,7 +158,7 @@ end
 
 // Output
 always_comb begin
-  ap_clr = slv_reg[CONTROL][0];
+  ap_start = slv_reg[CONTROL][0];
   exp_tx_net_pkt = slv_reg[EXP_TX_NET_PKT];
   exp_rx_net_pkt = slv_reg[EXP_RX_NET_PKT];
   comm_meta.data = slv_reg[COMMUNICATOR];
@@ -250,7 +250,10 @@ ila_bench_role_slave ila_bench_role_slave
   .probe11(axi_ctrl.awvalid), //1
   .probe12(axi_ctrl.awaddr), //64
   .probe13(axi_ctrl.wstrb), //8
-  .probe14(ap_clr) 
+  .probe14(ap_start),
+  .probe15(comm_meta.valid),
+  .probe16(comm_meta.ready),
+  .probe17(comm_meta.data) //64
  ); 
 `endif
 

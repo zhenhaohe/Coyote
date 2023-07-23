@@ -81,8 +81,8 @@ always @(posedge aclk) begin
 end
 
 //-------------------- Host - Device--------------------------// 
-always_comb bpss_rd_req.tie_off_m();
-always_comb bpss_rd_done.tie_off_s();
+assign bpss_rd_req.valid = 1'b0;
+assign bpss_rd_done.ready = 1'b1;
 
 logic [63:0] axis_host_0_sink_ready_down;
 
@@ -154,7 +154,7 @@ host_packetBatcher_ip host_packetBatcher (
 	.netTxCmd_out_TDATA(batcherMetaOut.data),
 	.netTxData_out_TDATA(batcherDataOut.tdata),
 	.netTxData_out_TKEEP(batcherDataOut.tkeep),
-	.netTxData_out_TSTRB(0),
+	.netTxData_out_TSTRB(),
 	.netTxData_out_TLAST(batcherDataOut.tlast),
 	.batchMaxTimer(batchMaxTimer_reg),
 	.ap_clk(aclk),

@@ -98,8 +98,8 @@ assign eHshStrm.ready = 1'b1;
             .clk(aclk), // input wire clk
             .probe0(msgStrm.valid), //1
             .probe1(msgStrm.ready), //1
-            .probe2(msgStrm.last), //1
-            .probe3(keyStrm.last), //1
+            .probe2(eHshStrm.ready), //1
+            .probe3(eHshStrm.data), //1
             .probe4(keyStrm.valid), //1
             .probe5(keyStrm.ready), //1
             .probe6(lenStrm_s1.valid), //1

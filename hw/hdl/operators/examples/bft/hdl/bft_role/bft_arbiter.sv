@@ -70,7 +70,7 @@ bft_arbiter_ip bft_arbiter_inst(
 
     .m_axis_0_TDATA(m_axis_0.tdata),
     .m_axis_0_TKEEP(m_axis_0.tkeep),
-    .m_axis_0_TSTRB(0),
+    .m_axis_0_TSTRB(),
     .m_axis_0_TLAST(m_axis_0.tlast),
     .m_axis_0_TVALID(m_axis_0.tvalid),
     .m_axis_0_TREADY(m_axis_0.tready),

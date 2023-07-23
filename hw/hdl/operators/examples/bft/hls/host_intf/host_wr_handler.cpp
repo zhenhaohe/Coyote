@@ -112,9 +112,6 @@ void host_wr_handler(
         if (ap_clr_pulse)
         {
             wrFsmState = CLR;
-            #ifndef __SYNTHESIS__
-            std::cout<<"REQ ap_clr_pulse"<<std::endl;
-            #endif
         }
         else if (!wr_meta.empty())
         {
@@ -151,9 +148,6 @@ void host_wr_handler(
         if (ap_clr_pulse)
         {
             wrFsmState = CLR;
-            #ifndef __SYNTHESIS__
-            std::cout<<"DATA ap_clr_pulse"<<std::endl;
-            #endif
         }
         else if (!wr_data.empty())
         {
@@ -173,9 +167,6 @@ void host_wr_handler(
         if (ap_clr_pulse)
         {
             wrFsmState = CLR;
-            #ifndef __SYNTHESIS__
-            std::cout<<"DATA ap_clr_pulse"<<std::endl;
-            #endif
         }
         else if (!wr_data.empty())
         {

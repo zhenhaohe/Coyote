@@ -2,13 +2,13 @@
 	
 package bftTypes;
 
-    //`define DEBUG_BENCH_ROLE_SLAVE
+    `define DEBUG_BENCH_ROLE_SLAVE
     `define ILA_TCP_DEBUG
     `define ILA_HOST_DEBUG
-    //`define DEBUG_CNFG_SLAVE
+    `define DEBUG_CNFG_SLAVE
     //`define DEBUG_AUTH_ROLE
     //`define DEBUG_AUTH_PIPE
-    //`define DEBUG_AUTH_HMAC
+    `define DEBUG_AUTH_HMAC
 
 
     parameter integer NET_OFFLOAD = 0; 

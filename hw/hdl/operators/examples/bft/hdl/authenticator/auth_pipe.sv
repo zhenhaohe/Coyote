@@ -80,7 +80,7 @@ assign auth_in_s0.tlast = auth_in_tlast;
 assign auth_in_tready = auth_in_s0.tready;
 
 // register input
-axis_reg_array #(.N_STAGES(3)) inst_auth_in_reg_array (.aclk(aclk), .aresetn(aresetn), .s_axis(auth_in_s0), .m_axis(auth_in_s1));
+axis_reg_array #(.N_STAGES(2)) inst_auth_in_reg_array (.aclk(aclk), .aresetn(aresetn), .s_axis(auth_in_s0), .m_axis(auth_in_s1));
 
 axis_data_fifo_width_512_depth_64 auth_pipeline_input_fifo (
     .s_axis_aclk ( aclk ),

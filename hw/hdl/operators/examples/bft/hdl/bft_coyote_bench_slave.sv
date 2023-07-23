@@ -365,7 +365,7 @@ ila_cnfg_slave ila_cnfg_slave
   .probe4(axi_ctrl.rready), //1
   .probe5(axi_ctrl.arvalid), //1
   .probe6(axi_ctrl.araddr), //64
-  .probe7(ap_done),
+  .probe7(axi_bvalid), //1
   .probe8(slv_reg_wren),  //1
   .probe9(axi_ctrl.wdata[63:0]), //64
   .probe10(axi_ctrl.awready), //1

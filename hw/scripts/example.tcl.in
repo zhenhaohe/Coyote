@@ -114,6 +114,9 @@ switch $cfg(example) {
         # Add source files
         add_files "$hw_dir/hdl/operators/examples/bft/hdl"  
         update_compile_order -fileset sources_1
+
+        # Copy constraint files
+        file copy -force "$hw_dir/hdl/operators/examples/bft/scripts/local.xdc" "$proj_dir/$project.srcs/constrs_1/local.xdc"
     }
 
     default {

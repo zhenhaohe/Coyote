@@ -74,7 +74,7 @@ void bft_mux_meta(
 		m_meta.write(headerWord);
         dest = 0;
         meta_int.write(dest);
-	} else if (s_meta_1.empty()){
+	} else if (!s_meta_1.empty()){
         headerWord = s_meta_1.read();
 		m_meta.write(headerWord);
         dest = 1;
