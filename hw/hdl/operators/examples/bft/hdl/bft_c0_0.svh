@@ -6,11 +6,6 @@
 // always_comb bpss_wr_done.tie_off_s();
 // always_comb axis_host_0_sink.tie_off_s();
 // always_comb axis_host_0_src.tie_off_m();
-// always_comb tcp_0_listen_req.tie_off_m();
-// always_comb tcp_0_listen_rsp.tie_off_s();
-// always_comb tcp_0_open_req.tie_off_m();
-// always_comb tcp_0_open_rsp.tie_off_s();
-// always_comb tcp_0_close_req.tie_off_m();
 // always_comb tcp_0_notify.tie_off_s();
 // always_comb tcp_0_rd_pkg.tie_off_m();
 // always_comb tcp_0_rx_meta.tie_off_s();
@@ -31,15 +26,14 @@ logic [63:0]    net_tx_cmd_error;
 logic [63:0]	maxPkgWord;
 logic [63:0]    batchMaxTimer;
 
-logic ap_clr, ap_clr_pulse;
+logic ap_clr, ap_clr_pulse, ap_start, ap_done;
+
+logic [63:0] exp_tx_net_pkt, exp_rx_net_pkt, execution_cycles;
+
+bft_tx_stat_t bft_tx_stat;
+bft_rx_stat_t bft_rx_stat;
 
 metaIntf #(.STYPE(logic [63:0])) buff_cmd();
-
-metaIntf #(.STYPE(logic [63:0])) open_con_cmd();
-metaIntf #(.STYPE(logic [31:0])) open_port_cmd();
-metaIntf #(.STYPE(logic [31:0])) close_con_cmd();
-metaIntf #(.STYPE(logic [127:0])) open_con_sts();
-metaIntf #(.STYPE(logic [31:0])) open_port_sts();
 
 AXI4S #(.AXI4S_DATA_BITS(512)) netTxData();
 metaIntf #(.STYPE(logic [63:0])) netTxMeta();
@@ -61,6 +55,18 @@ axisr_reg_array #(.N_STAGES(2)) inst_axis_host_0_sink_reg_array (.aclk(aclk), .a
 
 AXI4SR #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) axis_host_0_src_reg();
 axisr_reg_array #(.N_STAGES(2)) inst_axis_host_0_src_reg_array (.aclk(aclk), .aresetn(aresetn), .s_axis(axis_host_0_src_reg), .m_axis(axis_host_0_src));
+
+AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) tx_net_msg_s0();
+metaIntf #(.STYPE(logic[64-1:0])) tx_net_meta_s0();
+
+AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) rx_net_msg_s0();
+metaIntf #(.STYPE(logic[64-1:0])) rx_net_meta_s0();
+
+metaIntf #(.STYPE(64)) comm_meta_s0();
+metaIntf #(.STYPE(64)) comm_meta_s1();
+
+meta_reg_array #(.N_STAGES(2), .DATA_BITS(64)) inst_comm_meta_array (.aclk(aclk), .aresetn(aresetn), .s_meta(comm_meta_s0), .m_meta(comm_meta_s1));
+
 
 host_wrapper host_intf_wrapper_inst(
     // DESCRIPTOR BYPASS
@@ -109,22 +115,12 @@ tcp_wrapper tcp_intf_wrapper_inst(
     .maxPkgWord(maxPkgWord),
     
     // User Interface
-    .open_con_cmd(open_con_cmd),
-    .open_port_cmd(open_port_cmd),
-    .close_con_cmd(close_con_cmd),
-    .open_con_sts(open_con_sts),
-    .open_port_sts(open_port_sts),
     .netTxData(netTxData_reg),
     .netTxMeta(netTxMeta_reg),
     .netRxData(netRxData),
     .netRxMeta(netRxMeta),
 
     // TCP/IP QSFP0 CMD
-    .tcp_0_listen_req(tcp_0_listen_req),
-    .tcp_0_listen_rsp(tcp_0_listen_rsp),
-    .tcp_0_open_req(tcp_0_open_req),
-    .tcp_0_open_rsp(tcp_0_open_rsp),
-    .tcp_0_close_req(tcp_0_close_req),
     .tcp_0_notify(tcp_0_notify),
     .tcp_0_rd_pkg(tcp_0_rd_pkg),
     .tcp_0_rx_meta(tcp_0_rx_meta),
@@ -149,35 +145,46 @@ tcp_wrapper tcp_intf_wrapper_inst(
     .aresetn(aresetn)
 );
 
-// Control crossbar 
-AXI4L #(.AXI4L_DATA_BITS(64)) axi_ctrl_cnfg ();
-AXI4L #(.AXI4L_DATA_BITS(64)) axi_ctrl_user ();
 
-bft_ctrl_xbar bft_ctrl_xbar_inst (
+ccl_engine ccl_engine
+(
+    .tx_data_in(tx_net_msg_s0),
+    .tx_meta_in(tx_net_meta_s0),
+    .net_tx_data_out(netTxData),
+    .net_tx_meta_out(netTxMeta),
+    .net_rx_data_in(netRxData_reg),
+    .net_rx_meta_in(netRxMeta_reg),
+    .rx_data_out(rx_net_msg_s0),
+    .rx_meta_out(rx_net_meta_s0),
+    .configComm_in(comm_meta_s1),
     .aclk(aclk),
-    .aresetn(aresetn),
-    .s_axi_ctrl(axi_ctrl),
-    .m_axi_ctrl_cnfg(axi_ctrl_cnfg),
-    .m_axi_ctrl_user(axi_ctrl_user)
+    .aresetn(aresetn)
 );
-
 
 bench_role bench_role_inst
 (
-    // control
-    .s_axi_ctrl(axi_ctrl_user),
+    // bench role control parameter
+    .ap_start(ap_start),
+    .ap_done(ap_done),
+    .exp_tx_net_pkt(exp_tx_net_pkt),
+    .exp_rx_net_pkt(exp_rx_net_pkt),
+    .execution_cycles(execution_cycles),
 
     // TCP
-    .netTxData(netTxData),
-    .netTxMeta(netTxMeta),
-    .netRxData(netRxData_reg),
-    .netRxMeta(netRxMeta_reg),
+    .tx_net_msg(tx_net_msg_s0),
+    .tx_net_meta(tx_net_meta_s0),
+    .rx_net_msg(rx_net_msg_s0),
+    .rx_net_meta(rx_net_meta_s0),
 
     // Host
     .hostTxData(hostTxData),
     .hostTxMeta(hostTxMeta),
 
     .hostRxData(hostRxData),
+
+    // debug
+    .bft_tx_stat(bft_tx_stat),
+    .bft_rx_stat(bft_rx_stat),
 
     // Clock and reset
     .aclk(aclk),
@@ -186,34 +193,33 @@ bench_role bench_role_inst
 
 
 bft_coyote_bench_slave bft_coyote_bench_slave_inst (
-	.aclk         (aclk),
-	.aresetn      (aresetn),
-	.axi_ctrl     (axi_ctrl_cnfg),
-	.ap_clr     (ap_clr),
-	.open_con_cmd_tdata (open_con_cmd.data), //[31:0] ip, [47:32] port
-	.open_con_cmd_tvalid (open_con_cmd.valid),
-	.open_con_cmd_tready (open_con_cmd.ready),
-	.open_port_cmd_tdata (open_port_cmd.data), //[15:0] port
-	.open_port_cmd_tvalid (open_port_cmd.valid),
-	.open_port_cmd_tready (open_port_cmd.ready),
-	.close_con_cmd_tdata (close_con_cmd.data), // [15:0] session
-	.close_con_cmd_tvalid (close_con_cmd.valid),
-	.close_con_cmd_tready (close_con_cmd.ready),
-	.open_con_sts_tdata (open_con_sts.data), // [15:0] session, [23:16] success, [55:24] ip, [71:56] port
-	.open_con_sts_tvalid (open_con_sts.valid),
-	.open_con_sts_tready (open_con_sts.ready),
-	.open_port_sts_tdata (open_port_sts.data), // [7:0] success
-	.open_port_sts_tvalid (open_port_sts.valid),
-	.open_port_sts_tready (open_port_sts.ready),
-    .buff_cmd_tdata(buff_cmd.data), // [47:0] base address offset, [63:48] size in KB
-    .buff_cmd_tvalid(buff_cmd.valid),
-    .buff_cmd_tready(buff_cmd.ready),
+	.aclk           (aclk),
+	.aresetn        (aresetn),
+	.axi_ctrl       (axi_ctrl),
+	.ap_clr         (ap_clr),
+    .ap_start       (ap_start),
+    .ap_done        (ap_done),
 
-    // config register
+    // role parameter
+    .exp_tx_net_pkt(exp_tx_net_pkt),
+    .exp_rx_net_pkt(exp_rx_net_pkt),
+    .execution_cycles(execution_cycles),
+
+    // role debug
+    .bft_tx_stat(bft_tx_stat),
+    .bft_rx_stat(bft_rx_stat),
+
+    // comm config cmd
+    .comm_meta(comm_meta_s0),
+
+    // intf buff cmd
+    .buff_cmd(buff_cmd), 
+
+    // intf config register
     .maxPkgWord (maxPkgWord),
     .batchMaxTimer(batchMaxTimer),
 
-    // debug registers
+    // intf debug registers
 	.consumed_bytes_network (consumed_bytes_network),
 	.produced_bytes_network (produced_bytes_network),
 	.consumed_bytes_host(consumed_bytes_host),

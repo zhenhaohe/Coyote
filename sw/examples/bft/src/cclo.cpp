@@ -23,13 +23,14 @@ void CCLO::init_cclo(std::vector<comm_rank> rank_vec, unsigned int local_rank, u
     setClear();
     clearCompleted();
 
-    cproc.setCSR(rxBatchMaxTimer, OFFSET_INTF_CTRL+INTF_CTRL::BATCH_MAX_TIMER);
-    cproc.setCSR(pkgWordCount, OFFSET_INTF_CTRL+INTF_CTRL::MAX_PKG_WORD);
+    cproc.setCSR(rxBatchMaxTimer, OFFSET_BFT_CRTL+BFT_CRTL::BATCH_MAX_TIMER);
+    cproc.setCSR(pkgWordCount, OFFSET_BFT_CRTL+BFT_CRTL::MAX_PKG_WORD);
 
     printf("CCLO init communicator: world size:%x, local_rank:%x\n", total_rank, local_rank);
 
     comm.size = total_rank;
     comm.localRank = local_rank;
+    comm.rank_vec = rank_vec;
 
     //open port 
     for (int i=0; i<total_rank; i++)
@@ -38,101 +39,61 @@ void CCLO::init_cclo(std::vector<comm_rank> rank_vec, unsigned int local_rank, u
         open_port(dstPort);
     }
 
-    // std::this_thread::sleep_for(1s);
+    std::this_thread::sleep_for(1s);
 
-    // //open con
-    // for (int i=0; i<total_rank; i++)
-    // {
-    //     uint32_t dstPort = rank_vec[i].port;
-    //     uint32_t dstIp = rank_vec[i].ip;
-    //     uint32_t dstRank = i;
-    //     if (local_rank != dstRank)
-    //     {
-    //         open_connection(dstIp, dstPort, dstRank);
-    //     }
+    //open con
+    for (int i=0; i<total_rank; i++)
+    {
+        uint32_t dstPort = rank_vec[i].port;
+        uint32_t dstIp = rank_vec[i].ip;
+        uint32_t dstRank = i;
+        std::cout<<"rank_vec:"<<dstPort<<" "<<dstIp<<" "<<dstRank<<std::endl;
+        if (local_rank != dstRank)
+        {
+            open_connection(dstIp, dstPort, dstRank);
+        }
+    }
+
+    std::this_thread::sleep_for(1s);
+
+    // offload communicator
+    offload_communicator();
+
+    // // create send buf
+    // for (int i=0; i<num_tx_buf; i++){
+    //     create_sendBuf(tx_buf_size);
     // }
 
-    // for (int i=0; i<total_rank-1; i++)
-    // {
-    //     std::this_thread::sleep_for(1s);
-    // }
+    // create receive buf
+    for (int i=0; i<NUM_RX_BUF; i++){
+        create_recvBuf(RX_BUF_SIZE);
+    }
 
-    // // offload communicator
-    // offload_communicator();
-
-    // // // create send buf
-    // // for (int i=0; i<num_tx_buf; i++){
-    // //     create_sendBuf(tx_buf_size);
-    // // }
-
-    // // create receive buf
-    // for (int i=0; i<NUM_RX_BUF; i++){
-    //     create_recvBuf(RX_BUF_SIZE);
-    // }
-
-    
-    
 }
-
 
 void CCLO::open_port (unsigned int port)
 {
-    uint64_t open_port_status;
+    bool open_port_status;
     uint64_t open_port = port;
-    cproc.setCSR(open_port, OFFSET_INTF_CTRL+INTF_CTRL::OPEN_PORT);
-    std::this_thread::sleep_for(10ms);
-    open_port_status = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::PORT_STATUS);
-    printf("open port: %lu, status: %lx\n", open_port, open_port_status);
-    fflush(stdout);
+    open_port_status = cproc.tcpOpenPort(port);
 }
 
-bool CCLO::open_connection (unsigned int ip, unsigned int port, unsigned int rank)
+void CCLO::open_connection (unsigned int dst_ip, unsigned int dst_port, unsigned int rank)
 {
     // open connection
-    uint64_t open_con_req;
-    uint64_t open_con_sts = 0; 
-    uint32_t success = 0;
-    uint32_t sts_ip, dst_ip;
-    uint32_t sts_port, dst_port;
-    uint32_t session;
-    uint32_t sts_valid;
+    bool success = false;
+    uint32_t session = 0;
 
-    dst_ip = ip;
-    dst_port = port;
     comm.rank_vec[rank].ip = dst_ip;
     comm.rank_vec[rank].port = dst_port;
-    open_con_req = (uint32_t)dst_ip | ((uint64_t)dst_port << 32);
-    printf("open con req: %lx, dst ip:%x, dst port:%x, rank:%x\n", open_con_req, dst_ip, dst_port, rank);
+    printf("open_connection: dst ip:%x, dst port:%x, dst rank:%x\n", dst_ip, dst_port, rank);
     fflush(stdout);
 
-    success = 0;
-    double timeoutMs = 5000.0;
-    double durationMs = 0.0;
-    auto start = std::chrono::high_resolution_clock::now();
-    cproc.setCSR(open_con_req, OFFSET_INTF_CTRL+INTF_CTRL::OPEN_CON);
-    while (success == 0 && durationMs < timeoutMs)
-    {
-        std::this_thread::sleep_for(100ms);
-        open_con_sts = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::OPEN_STATUS);
-        session = open_con_sts & 0x0000000000007FFF;
-        sts_valid = (open_con_sts & 0x0000000000008000) >> 15;
-        sts_ip = (open_con_sts & 0x0000FFFFFFFF0000) >> 16;
-        sts_port = (open_con_sts >> 48); 
-        if ((sts_valid == 1) && (sts_ip == ip) && (sts_port == port))
-        {
-            success = 1;
-            comm.rank_vec[rank].session = session;
-        }
-        else 
-            success = 0;
-        auto end = std::chrono::high_resolution_clock::now();
-        durationMs = (std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count() / 1000000.0);
+    success = cproc.tcpOpenCon(dst_ip, dst_port, &session);
+
+    if (success) {
+        comm.rank_vec[rank].session = session;
     }
-    printf("open con sts session:%x, success:%x, sts_ip:%x, sts_port:%x, duration[ms]:%f\n", session, success, sts_ip, sts_port, durationMs);
-    fflush(stdout);
-
-    return success;
-
 }
 
 
@@ -201,7 +162,7 @@ void CCLO::enqueue_recvBuf_hw (buf_t curr_buf)
     uint64_t buff_size_KB = (uint64_t) curr_buf.size / 1024;
     uint64_t addr = reinterpret_cast<uint64_t>(curr_buf.addr);
     buff_cmd = (addr & 0xFFFFFFFFFFFF)  |  ((buff_size_KB & 0xFFFF) << 48);
-    cproc.setCSR(buff_cmd, OFFSET_INTF_CTRL+INTF_CTRL::BUFF_CMD);
+    cproc.setCSR(buff_cmd, OFFSET_BFT_CRTL+BFT_CRTL::BUFF_CMD);
 }
 
 rcv_meta_t CCLO::receive(void* user_buf, unsigned int user_buf_size)
@@ -297,19 +258,19 @@ rcv_meta_t CCLO::receive(void* user_buf, unsigned int user_buf_size)
 void CCLO::getDebugCounters()
 {
     // intf debug counters
-    sts_cnt.consumed_bytes_host = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::CONSUMED_BYTES_HOST);
-    sts_cnt.produced_bytes_host = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::PRODUCED_BYTES_HOST);
-    sts_cnt.consumed_bytes_network = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::CONSUMED_BYTES_NETWORK);
-    sts_cnt.produced_bytes_network = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::PRODUCED_BYTES_NETWORK);
-    sts_cnt.consumed_pkt_network = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::CONSUMED_PKT_NETWORK);
-    sts_cnt.produced_pkt_network = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::PRODUCED_PKT_NETWORK);
-    sts_cnt.consumed_pkt_host = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::CONSUMED_PKT_HOST);
-    sts_cnt.produced_pkt_host = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::PRODUCED_PKT_HOST);
-    sts_cnt.device_net_down = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::DEVICE_NET_DOWN);
-    sts_cnt.net_device_down = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::NET_DEVICE_DOWN);
-    sts_cnt.host_device_down = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::HOST_DEVICE_DOWN);
-    sts_cnt.device_host_down = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::DEVICE_HOST_DOWN);
-    sts_cnt.net_tx_cmd_error = cproc.getCSR(OFFSET_INTF_CTRL+INTF_CTRL::NET_TX_CMD_ERROR);
+    sts_cnt.consumed_bytes_host = cproc.getCSR(OFFSET_BFT_CRTL+BFT_CRTL::CONSUMED_BYTES_HOST);
+    sts_cnt.produced_bytes_host = cproc.getCSR(OFFSET_BFT_CRTL+BFT_CRTL::PRODUCED_BYTES_HOST);
+    sts_cnt.consumed_bytes_network = cproc.getCSR(OFFSET_BFT_CRTL+BFT_CRTL::CONSUMED_BYTES_NETWORK);
+    sts_cnt.produced_bytes_network = cproc.getCSR(OFFSET_BFT_CRTL+BFT_CRTL::PRODUCED_BYTES_NETWORK);
+    sts_cnt.consumed_pkt_network = cproc.getCSR(OFFSET_BFT_CRTL+BFT_CRTL::CONSUMED_PKT_NETWORK);
+    sts_cnt.produced_pkt_network = cproc.getCSR(OFFSET_BFT_CRTL+BFT_CRTL::PRODUCED_PKT_NETWORK);
+    sts_cnt.consumed_pkt_host = cproc.getCSR(OFFSET_BFT_CRTL+BFT_CRTL::CONSUMED_PKT_HOST);
+    sts_cnt.produced_pkt_host = cproc.getCSR(OFFSET_BFT_CRTL+BFT_CRTL::PRODUCED_PKT_HOST);
+    sts_cnt.device_net_down = cproc.getCSR(OFFSET_BFT_CRTL+BFT_CRTL::DEVICE_NET_DOWN);
+    sts_cnt.net_device_down = cproc.getCSR(OFFSET_BFT_CRTL+BFT_CRTL::NET_DEVICE_DOWN);
+    sts_cnt.host_device_down = cproc.getCSR(OFFSET_BFT_CRTL+BFT_CRTL::HOST_DEVICE_DOWN);
+    sts_cnt.device_host_down = cproc.getCSR(OFFSET_BFT_CRTL+BFT_CRTL::DEVICE_HOST_DOWN);
+    sts_cnt.net_tx_cmd_error = cproc.getCSR(OFFSET_BFT_CRTL+BFT_CRTL::NET_TX_CMD_ERROR);
 
     // bft debug counters
     sts_cnt.execution_cycles = cproc.getCSR(OFFSET_BFT_CRTL+BFT_CRTL::EXECUTION_CYCLES);

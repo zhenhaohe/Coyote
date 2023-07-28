@@ -18,11 +18,11 @@ update_compile_order -fileset sources_1
 # tcp and host interfaces
 
 create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_tcp
-set_property -dict [list CONFIG.C_PROBE43_WIDTH {16} CONFIG.C_PROBE43_WIDTH {32} CONFIG.C_PROBE42_WIDTH {16} CONFIG.C_PROBE41_WIDTH {32} CONFIG.C_PROBE38_WIDTH {128} CONFIG.C_PROBE32_WIDTH {32} CONFIG.C_PROBE29_WIDTH {16} CONFIG.C_PROBE26_WIDTH {16} CONFIG.C_PROBE25_WIDTH {16} CONFIG.C_PROBE19_WIDTH {32} CONFIG.C_PROBE16_WIDTH {64} CONFIG.C_PROBE10_WIDTH {16} CONFIG.C_PROBE6_WIDTH {16} CONFIG.C_PROBE3_WIDTH {16} CONFIG.C_PROBE2_WIDTH {32} CONFIG.C_NUM_OF_PROBES {45} CONFIG.Component_Name {ila_tcp} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_tcp]
+set_property -dict [list CONFIG.C_PROBE24_WIDTH {32} CONFIG.C_PROBE23_WIDTH {32} CONFIG.C_PROBE22_WIDTH {32} CONFIG.C_PROBE18_WIDTH {32} CONFIG.C_PROBE15_WIDTH {16} CONFIG.C_PROBE12_WIDTH {16} CONFIG.C_PROBE11_WIDTH {16} CONFIG.C_PROBE5_WIDTH {32} CONFIG.C_PROBE2_WIDTH {64} CONFIG.C_NUM_OF_PROBES {25} CONFIG.Component_Name {ila_tcp} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_tcp]
 update_compile_order -fileset sources_1
 
 create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_host
-set_property -dict [list CONFIG.C_PROBE12_WIDTH {64} CONFIG.C_PROBE11_WIDTH {64} CONFIG.C_PROBE9_WIDTH {6} CONFIG.C_PROBE8_WIDTH {4} CONFIG.C_PROBE3_WIDTH {28} CONFIG.C_PROBE2_WIDTH {48} CONFIG.C_NUM_OF_PROBES {19} CONFIG.Component_Name {ila_host} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_host]
+set_property -dict [list CONFIG.C_PROBE21_WIDTH {512} CONFIG.C_PROBE12_WIDTH {64} CONFIG.C_PROBE11_WIDTH {64} CONFIG.C_PROBE9_WIDTH {6} CONFIG.C_PROBE8_WIDTH {4} CONFIG.C_PROBE3_WIDTH {28} CONFIG.C_PROBE2_WIDTH {48} CONFIG.C_NUM_OF_PROBES {22} CONFIG.Component_Name {ila_host} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_host]
 update_compile_order -fileset sources_1
 
 
@@ -32,11 +32,11 @@ set_property -dict [list  CONFIG.C_PROBE7_WIDTH {8} CONFIG.C_PROBE6_WIDTH {8} CO
 update_compile_order -fileset sources_1
 
 create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_auth_pipe
-set_property -dict [list CONFIG.C_PROBE14_WIDTH {512} CONFIG.C_PROBE13_WIDTH {256} CONFIG.C_PROBE10_WIDTH {64} CONFIG.C_PROBE3_WIDTH {512} CONFIG.C_NUM_OF_PROBES {18} CONFIG.Component_Name {ila_auth_pipe} CONFIG.C_INPUT_PIPE_STAGES {2}] [get_ips ila_auth_pipe]
+set_property -dict [list CONFIG.C_PROBE18_WIDTH {64} CONFIG.C_PROBE14_WIDTH {512} CONFIG.C_PROBE13_WIDTH {256} CONFIG.C_PROBE10_WIDTH {64} CONFIG.C_PROBE3_WIDTH {512} CONFIG.C_NUM_OF_PROBES {19} CONFIG.Component_Name {ila_auth_pipe} CONFIG.C_INPUT_PIPE_STAGES {2}] [get_ips ila_auth_pipe]
 update_compile_order -fileset sources_1
 
 create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_auth_hmac
-set_property -dict [list CONFIG.C_PROBE16_WIDTH {32} CONFIG.C_PROBE15_WIDTH {64} CONFIG.C_PROBE14_WIDTH {32} CONFIG.C_PROBE13_WIDTH {256} CONFIG.C_NUM_OF_PROBES {18} CONFIG.Component_Name {ila_auth_hmac} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_auth_hmac]
+set_property -dict [list CONFIG.C_PROBE18_WIDTH {64} CONFIG.C_PROBE16_WIDTH {32} CONFIG.C_PROBE15_WIDTH {64} CONFIG.C_PROBE14_WIDTH {32} CONFIG.C_PROBE13_WIDTH {256} CONFIG.C_NUM_OF_PROBES {19} CONFIG.Component_Name {ila_auth_hmac} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_auth_hmac]
 update_compile_order -fileset sources_1
 
 # sha
@@ -60,7 +60,7 @@ update_compile_order -fileset sources_1
 # bft
 
 create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_cnfg_slave
-set_property -dict [list  CONFIG.C_PROBE1_WIDTH {64} CONFIG.C_PROBE6_WIDTH {64} CONFIG.C_PROBE9_WIDTH {64} CONFIG.C_PROBE12_WIDTH {64} CONFIG.C_PROBE15_WIDTH {64} CONFIG.C_PROBE18_WIDTH {16} CONFIG.C_PROBE21_WIDTH {72} CONFIG.C_PROBE24_WIDTH {8} CONFIG.C_PROBE25_WIDTH {8} CONFIG.C_NUM_OF_PROBES {26} CONFIG.Component_Name {ila_cnfg_slave} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_cnfg_slave]
+set_property -dict [list  CONFIG.C_PROBE1_WIDTH {64} CONFIG.C_PROBE6_WIDTH {64} CONFIG.C_PROBE9_WIDTH {64} CONFIG.C_PROBE12_WIDTH {64} CONFIG.C_PROBE15_WIDTH {64} CONFIG.C_PROBE18_WIDTH {64} CONFIG.C_PROBE22_WIDTH {64} CONFIG.C_PROBE23_WIDTH {64} CONFIG.C_PROBE24_WIDTH {64} CONFIG.C_PROBE24_WIDTH {64} CONFIG.C_PROBE25_WIDTH {8} CONFIG.C_NUM_OF_PROBES {26} CONFIG.Component_Name {ila_cnfg_slave} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_cnfg_slave]
 update_compile_order -fileset sources_1
 
 create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_bench_role_slave

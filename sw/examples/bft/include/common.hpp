@@ -1,16 +1,11 @@
 #pragma once
 
-// TODO: check this
-const size_t OFFSET_INTF_CTRL = 0x1000; 
 const size_t OFFSET_BFT_CRTL  = 0x0000; 
 
-namespace INTF_CTRL {
-	constexpr auto const CONTROL = 0;
-	constexpr auto const OPEN_CON = 2;
-	constexpr auto const OPEN_PORT = 3;
-	constexpr auto const CLOSE_CON = 4;
-	constexpr auto const OPEN_STATUS = 5;
-	constexpr auto const PORT_STATUS = 6;
+namespace BFT_CRTL {
+	constexpr auto const START = 0;
+	constexpr auto const STATUS = 1;
+	constexpr auto const CLEAR = 2;
 	constexpr auto const CONSUMED_BYTES_NETWORK = 7;
 	constexpr auto const PRODUCED_BYTES_NETWORK = 8;
 	constexpr auto const MAX_PKG_WORD = 11;
@@ -27,27 +22,23 @@ namespace INTF_CTRL {
 	constexpr auto const DEVICE_HOST_DOWN = 29;
 	constexpr auto const NET_TX_CMD_ERROR = 30;
 	constexpr auto const BUFF_CMD = 31;
-}
 
-namespace BFT_CRTL {
-	constexpr auto const CONTROL = 0;
-	constexpr auto const STATUS = 1;
-	constexpr auto const TX_NET_OFFLOAD_BYTES = 2;
-	constexpr auto const TX_NET_OFFLOAD_PKT = 3;
-	constexpr auto const TX_NET_OFFLOAD_DOWN = 4;
-	constexpr auto const TX_AUTH_OFFLOAD_BYTES = 5;
-	constexpr auto const TX_AUTH_OFFLOAD_PKT = 6;
-	constexpr auto const TX_AUTH_OFFLOAD_DOWN = 7;
-	constexpr auto const RX_NET_OFFLOAD_BYTES = 8;
-	constexpr auto const RX_NET_OFFLOAD_PKT = 9;
-	constexpr auto const RX_NET_OFFLOAD_DOWN = 10;
-	constexpr auto const RX_AUTH_OFFLOAD_BYTES = 11;
-	constexpr auto const RX_AUTH_OFFLOAD_PKT = 12;
-	constexpr auto const RX_AUTH_OFFLOAD_DOWN = 13;
-	constexpr auto const EXECUTION_CYCLES = 14;
-	constexpr auto const EXP_TX_NET_PKT = 15;
-	constexpr auto const EXP_RX_NET_PKT = 16;
-    constexpr auto const COMMUNICATOR = 17;
+	constexpr auto const TX_NET_OFFLOAD_BYTES = 32;
+	constexpr auto const TX_NET_OFFLOAD_PKT = 33;
+	constexpr auto const TX_NET_OFFLOAD_DOWN = 34;
+	constexpr auto const TX_AUTH_OFFLOAD_BYTES = 35;
+	constexpr auto const TX_AUTH_OFFLOAD_PKT = 36;
+	constexpr auto const TX_AUTH_OFFLOAD_DOWN = 37;
+	constexpr auto const RX_NET_OFFLOAD_BYTES = 38;
+	constexpr auto const RX_NET_OFFLOAD_PKT = 39;
+	constexpr auto const RX_NET_OFFLOAD_DOWN = 40;
+	constexpr auto const RX_AUTH_OFFLOAD_BYTES = 41;
+	constexpr auto const RX_AUTH_OFFLOAD_PKT = 42;
+	constexpr auto const RX_AUTH_OFFLOAD_DOWN = 43;
+	constexpr auto const EXECUTION_CYCLES = 44;
+	constexpr auto const EXP_TX_NET_PKT = 45;
+	constexpr auto const EXP_RX_NET_PKT = 46;
+	constexpr auto const COMMUNICATOR = 47;
 }
 
 typedef struct {

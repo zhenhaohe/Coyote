@@ -38,25 +38,20 @@ module bft_coyote_bench_slave (
 	AXI4L.s                                       axi_ctrl,
 
 	output logic 									                ap_clr,
-	output logic [63:0]                           open_con_cmd_tdata, //[31:0] ip, [47:32] port
-	output logic                                  open_con_cmd_tvalid,
-	input logic                                   open_con_cmd_tready,
-	output logic [31:0]                           open_port_cmd_tdata, //[15:0] port
-	output logic                                  open_port_cmd_tvalid,
-	input logic                                   open_port_cmd_tready,
-	output logic [31:0]                           close_con_cmd_tdata, // [15:0] session
-	output logic                                  close_con_cmd_tvalid,
-	input logic                                   close_con_cmd_tready,
-	input logic [127:0]                           open_con_sts_tdata, // [15:0] session, [23:16] success, [55:24] ip, [71:56] port
-	input logic                                   open_con_sts_tvalid,
-	output logic                                  open_con_sts_tready,
-	input logic [31:0]                            open_port_sts_tdata, // [7:0] success
-	input logic                                   open_port_sts_tvalid,
-	output logic                                  open_port_sts_tready,
-  output logic [63:0]                           buff_cmd_tdata, // [47:0] base address offset, [63:48] size in KB
-  output logic                                  buff_cmd_tvalid,
-  input logic                                   buff_cmd_tready,
-	input logic [63:0]                            consumed_bytes_network,
+  output logic 									                ap_start,
+  input logic 									                ap_done,
+
+  metaIntf.m                                    buff_cmd, // [47:0] base address offset, [63:48] size in KB
+	metaIntf.m                                    comm_meta,
+
+  input bft_tx_stat_t                           bft_tx_stat,
+  input bft_rx_stat_t                           bft_rx_stat,
+
+  output logic [63:0]									          exp_tx_net_pkt,
+	output logic [63:0]								            exp_rx_net_pkt,
+  input logic [63:0]								            execution_cycles,
+
+  input logic [63:0]                            consumed_bytes_network,
 	input logic [63:0]                            produced_bytes_network,
 	input logic [63:0]                            consumed_bytes_host,
 	input logic [63:0]                            produced_bytes_host,
@@ -81,7 +76,7 @@ module bft_coyote_bench_slave (
 
 // AXIL_DATA_BITS = 64
 // Constants
-localparam integer N_REGS = 32;
+localparam integer N_REGS = 64;
 localparam integer ADDR_LSB = $clog2(AXIL_DATA_BITS/8);
 localparam integer ADDR_MSB = $clog2(N_REGS);
 localparam integer AXI_ADDR_BITS = ADDR_LSB + ADDR_MSB;
@@ -108,36 +103,11 @@ logic aw_en;
 // -- Def -----------------------------------------------------------
 // ------------------------------------------------------------------
 
-/* -- Register map ----------------------------------------------------------------------- 
-/ 0 (WO)  : Control
-/ 2 (RW)  : open_con
-/ 3 (RW)  : open_port
-/ 4 (RW)  : close_con
-/ 5 (R)  : open_status
-/ 6 (R)  : port_status
-/ 7 (R)  : consumed_bytes_network
-/ 8 (R)  : produced_bytes_network
-/11 (RW) : maxPkgWord
-/12 (R)  : consumed_bytes_host
-/13 (R)  : produced_bytes_host
-/16 (R)	 : consumed_pkt_network
-/17 (R)	 : produced_pkt_network
-/18 (R)	 : consumed_pkt_host
-/19 (R)	 : produced_pkt_host
-/25 (RW) : batchMaxTimer
-/26 (R)  : device_net_down
-/27 (R)  : net_device_down
-/28 (R)  : host_device_down
-/29 (R)  : device_host_down 
-/30 (R)  : net_tx_cmd_error
-/31 (WR)  : buff_cmd
+/* -- Register map --------------------------------------------------
 */
-localparam integer CONTROL = 0;
-localparam integer OPEN_CON = 2;
-localparam integer OPEN_PORT = 3;
-localparam integer CLOSE_CON = 4;
-localparam integer OPEN_STATUS = 5;
-localparam integer PORT_STATUS = 6;
+localparam integer START = 0;
+localparam integer STATUS = 1;
+localparam integer CLEAR = 2;
 localparam integer CONSUMED_BYTES_NETWORK = 7;
 localparam integer PRODUCED_BYTES_NETWORK = 8;
 localparam integer MAX_PKG_WORD = 11;
@@ -155,6 +125,22 @@ localparam integer DEVICE_HOST_DOWN = 29;
 localparam integer NET_TX_CMD_ERROR = 30;
 localparam integer BUFF_CMD = 31;
 
+localparam integer TX_NET_OFFLOAD_BYTES = 32;
+localparam integer TX_NET_OFFLOAD_PKT = 33;
+localparam integer TX_NET_OFFLOAD_DOWN = 34;
+localparam integer TX_AUTH_OFFLOAD_BYTES = 35;
+localparam integer TX_AUTH_OFFLOAD_PKT = 36;
+localparam integer TX_AUTH_OFFLOAD_DOWN = 37;
+localparam integer RX_NET_OFFLOAD_BYTES = 38;
+localparam integer RX_NET_OFFLOAD_PKT = 39;
+localparam integer RX_NET_OFFLOAD_DOWN = 40;
+localparam integer RX_AUTH_OFFLOAD_BYTES = 41;
+localparam integer RX_AUTH_OFFLOAD_PKT = 42;
+localparam integer RX_AUTH_OFFLOAD_DOWN = 43;
+localparam integer EXECUTION_CYCLES = 44;
+localparam integer EXP_TX_NET_PKT = 45;
+localparam integer EXP_RX_NET_PKT = 46;
+localparam integer COMMUNICATOR = 47;
 
 
 // Write process
@@ -165,57 +151,24 @@ always_ff @(posedge aclk, negedge aresetn) begin
     for (int i = 0; i < N_REGS; i++) begin
       slv_reg[i] <= 0;
     end 
-    open_con_cmd_tvalid <= 1'b0;
-    open_port_cmd_tvalid <= 1'b0;
-    close_con_cmd_tvalid <= 1'b0;
-    buff_cmd_tvalid <= 1'b0;
+    buff_cmd.valid <= 1'b0;
+    comm_meta.valid <= 1'b0;
   end
   else begin
-    slv_reg[0][0] <= 0;
-    open_con_cmd_tvalid <= 1'b0;
-    open_port_cmd_tvalid <= 1'b0;
-    close_con_cmd_tvalid <= 1'b0;
-    buff_cmd_tvalid <= 1'b0;
+    slv_reg[START][0] <= 0;
+    slv_reg[CLEAR][0] <= 0;
+    buff_cmd.valid <= 1'b0;
+    comm_meta.valid <= 1'b0;
 
     if(slv_reg_wren) begin
       case (axi_awaddr[ADDR_LSB+ADDR_MSB-1:ADDR_LSB])
-        CONTROL : begin // Control
+        START : begin // START
           for (int i = 0; i < 1; i++) begin
             if(axi_ctrl.wstrb[i]) begin
-              slv_reg[CONTROL][(i*8)+:8] <= axi_ctrl.wdata[(i*8)+:8];
+              slv_reg[START][(i*8)+:8] <= axi_ctrl.wdata[(i*8)+:8];
             end
           end
         end  
-        OPEN_CON : begin // open_con
-          for (int i = 0; i < AXIL_DATA_BITS/8; i++) begin
-            if(axi_ctrl.wstrb[i]) begin
-              slv_reg[OPEN_CON][(i*8)+:8] <= axi_ctrl.wdata[(i*8)+:8];
-            end
-          end
-          if (axi_ctrl.wstrb != 0) begin
-            open_con_cmd_tvalid <= 1'b1;
-          end
-        end
-        OPEN_PORT : begin // open_port
-          for (int i = 0; i < AXIL_DATA_BITS/8; i++) begin
-            if(axi_ctrl.wstrb[i]) begin
-              slv_reg[OPEN_PORT][(i*8)+:8] <= axi_ctrl.wdata[(i*8)+:8];
-            end
-          end
-          if (axi_ctrl.wstrb != 0) begin
-            open_port_cmd_tvalid <= 1'b1;
-          end
-        end
-        CLOSE_CON : begin // close_con
-          for (int i = 0; i < AXIL_DATA_BITS/8; i++) begin
-            if(axi_ctrl.wstrb[i]) begin
-              slv_reg[CLOSE_CON][(i*8)+:8] <= axi_ctrl.wdata[(i*8)+:8];
-            end
-          end
-          if (axi_ctrl.wstrb != 0) begin
-            close_con_cmd_tvalid <= 1'b1;
-          end
-        end
         MAX_PKG_WORD : begin // maxPkgWord
           for (int i = 0; i < AXIL_DATA_BITS/8; i++) begin
             if(axi_ctrl.wstrb[i]) begin
@@ -230,14 +183,45 @@ always_ff @(posedge aclk, negedge aresetn) begin
             end
           end
         end
-        BUFF_CMD : begin // open_port
+        BUFF_CMD : begin // buff_cmd
           for (int i = 0; i < AXIL_DATA_BITS/8; i++) begin
             if(axi_ctrl.wstrb[i]) begin
               slv_reg[BUFF_CMD][(i*8)+:8] <= axi_ctrl.wdata[(i*8)+:8];
             end
           end
           if (axi_ctrl.wstrb != 0) begin
-            buff_cmd_tvalid <= 1'b1;
+            buff_cmd.valid <= 1'b1;
+          end
+        end
+        CLEAR : begin // CLEAR
+          for (int i = 0; i < 1; i++) begin
+            if(axi_ctrl.wstrb[i]) begin
+              slv_reg[CLEAR][(i*8)+:8] <= axi_ctrl.wdata[(i*8)+:8];
+            end
+          end
+        end  
+        EXP_TX_NET_PKT : begin // exp_tx_net_pkt
+          for (int i = 0; i < AXIL_DATA_BITS/8; i++) begin
+            if(axi_ctrl.wstrb[i]) begin
+              slv_reg[EXP_TX_NET_PKT][(i*8)+:8] <= axi_ctrl.wdata[(i*8)+:8];
+            end
+          end
+        end
+        EXP_RX_NET_PKT : begin // exp_rx_net_pkt
+          for (int i = 0; i < AXIL_DATA_BITS/8; i++) begin
+            if(axi_ctrl.wstrb[i]) begin
+              slv_reg[EXP_RX_NET_PKT][(i*8)+:8] <= axi_ctrl.wdata[(i*8)+:8];
+            end
+          end
+        end
+        COMMUNICATOR : begin // communicator
+          for (int i = 0; i < AXIL_DATA_BITS/8; i++) begin
+            if(axi_ctrl.wstrb[i]) begin
+              slv_reg[COMMUNICATOR][(i*8)+:8] <= axi_ctrl.wdata[(i*8)+:8];
+            end
+          end
+          if (axi_ctrl.wstrb != 0) begin
+            comm_meta.valid <= 1'b1;
           end
         end
         default : ;
@@ -248,13 +232,14 @@ end
 
 // Output
 always_comb begin
-  ap_clr = slv_reg[CONTROL][0];
-  open_con_cmd_tdata = slv_reg[OPEN_CON];
-  open_port_cmd_tdata = slv_reg[OPEN_PORT][31:0];
-  close_con_cmd_tdata = slv_reg[CLOSE_CON][31:0];
+  ap_start = slv_reg[START][0];
   maxPkgWord = slv_reg[MAX_PKG_WORD];
   batchMaxTimer = slv_reg[BATCH_MAX_TIMER];
-  buff_cmd_tdata = slv_reg[BUFF_CMD];
+  buff_cmd.data = slv_reg[BUFF_CMD];
+  ap_clr = slv_reg[CLEAR][0];
+  exp_tx_net_pkt = slv_reg[EXP_TX_NET_PKT];
+  exp_rx_net_pkt = slv_reg[EXP_RX_NET_PKT];
+  comm_meta.data = slv_reg[COMMUNICATOR];
 end
 
 // Read process
@@ -263,46 +248,12 @@ assign slv_reg_rden = axi_arready & axi_ctrl.arvalid & ~axi_rvalid;
 always_ff @(posedge aclk, negedge aresetn) begin
   if( aresetn == 1'b0 ) begin
     axi_rdata <= 0;
-    open_con_sts_tready <= 1'b0;
-    open_port_sts_tready <= 1'b0;
   end
   else begin
-    open_con_sts_tready <= 1'b0;
-    open_port_sts_tready <= 1'b0;
 
     if(slv_reg_rden) begin
       axi_rdata <= 0;
       case (axi_araddr[ADDR_LSB+ADDR_MSB-1:ADDR_LSB])
-        OPEN_CON : begin // open_con
-          axi_rdata <= open_con_cmd_tdata;
-        end
-        OPEN_PORT : begin // open_port
-          axi_rdata <= open_port_cmd_tdata;
-        end
-        CLOSE_CON : begin // close_con
-          axi_rdata <= close_con_cmd_tdata;
-        end
-        OPEN_STATUS : begin // open_status
-          if (open_con_sts_tvalid) begin
-            axi_rdata[14:0] <= open_con_sts_tdata[14:0]; // session
-            axi_rdata[15:15] <= open_con_sts_tdata[16]; // success
-            axi_rdata[47:16] <= open_con_sts_tdata[55:24]; // ip
-            axi_rdata[63:48] <= open_con_sts_tdata[71:56]; // port
-            open_con_sts_tready <= 1'b1;
-          end
-          else begin
-            axi_rdata <= '0;
-          end
-        end
-        PORT_STATUS : begin // port_status
-          if (open_port_sts_tvalid) begin
-            axi_rdata <= open_port_sts_tdata;
-            open_port_sts_tready <= 1'b1;
-          end
-          else begin
-            axi_rdata <= '0;
-          end
-        end
         CONSUMED_BYTES_NETWORK : begin // consumed_bytes_network
           axi_rdata <= consumed_bytes_network;
         end
@@ -348,6 +299,54 @@ always_ff @(posedge aclk, negedge aresetn) begin
         NET_TX_CMD_ERROR : begin // net_tx_cmd_error
           axi_rdata <= net_tx_cmd_error;
         end
+        STATUS : begin // ap_done
+          axi_rdata <= ap_done;
+        end
+        TX_NET_OFFLOAD_BYTES : begin // tx_net_offload_bytes
+          axi_rdata <= bft_tx_stat.net_offload_bytes;
+        end
+        TX_NET_OFFLOAD_PKT : begin // tx_net_offload_pkt
+          axi_rdata <= bft_tx_stat.net_offload_pkt;
+        end
+        TX_NET_OFFLOAD_DOWN : begin // tx_net_offload_down
+          axi_rdata <= bft_tx_stat.net_offload_down;
+        end
+        TX_AUTH_OFFLOAD_BYTES : begin // tx_auth_offload_bytes
+          axi_rdata <= bft_tx_stat.auth_offload_bytes;
+        end
+        TX_AUTH_OFFLOAD_PKT : begin // tx_auth_offload_pkt
+          axi_rdata <= bft_tx_stat.auth_offload_pkt;
+        end
+        TX_AUTH_OFFLOAD_DOWN : begin // tx_auth_offload_down
+          axi_rdata <= bft_tx_stat.auth_offload_down;
+        end
+        RX_NET_OFFLOAD_BYTES : begin // rx_net_offload_bytes
+          axi_rdata <= bft_rx_stat.net_offload_bytes;
+        end
+        RX_NET_OFFLOAD_PKT : begin // rx_net_offload_pkt
+          axi_rdata <= bft_rx_stat.net_offload_pkt;
+        end
+        RX_NET_OFFLOAD_DOWN : begin // rx_net_offload_down
+          axi_rdata <= bft_rx_stat.net_offload_down;
+        end
+        RX_AUTH_OFFLOAD_BYTES : begin // rx_auth_offload_bytes
+          axi_rdata <= bft_rx_stat.auth_offload_bytes;
+        end
+        RX_AUTH_OFFLOAD_PKT : begin // rx_auth_offload_pkt
+          axi_rdata <= bft_rx_stat.auth_offload_pkt;
+        end
+        RX_AUTH_OFFLOAD_DOWN : begin // rx_auth_offload_down
+          axi_rdata <= bft_rx_stat.auth_offload_down;
+        end
+        EXECUTION_CYCLES : begin // execution_cycles
+          axi_rdata <= execution_cycles;
+        end
+        EXP_RX_NET_PKT : begin // exp_rx_net_pkt
+          axi_rdata <= exp_rx_net_pkt;
+        end
+        EXP_TX_NET_PKT : begin // exp_tx_net_pkt
+          axi_rdata <= exp_tx_net_pkt;
+        end
       endcase
     end
   end 
@@ -371,18 +370,18 @@ ila_cnfg_slave ila_cnfg_slave
   .probe10(axi_ctrl.awready), //1
   .probe11(axi_ctrl.awvalid), //1
   .probe12(axi_ctrl.awaddr), //64
-  .probe13(open_con_cmd_tvalid), //1
-  .probe14(open_con_cmd_tready), //1
-  .probe15(open_con_cmd_tdata), //64
-  .probe16(open_port_cmd_tvalid), //1
-  .probe17(open_port_cmd_tready), //1
-  .probe18(open_port_cmd_tdata), //16
-  .probe19(open_con_sts_tvalid), //1
-  .probe20(open_con_sts_tready), //1
-  .probe21(open_con_sts_tdata), //72
-  .probe22(open_port_sts_tvalid), //1
-  .probe23(open_port_sts_tready), //1
-  .probe24(open_port_sts_tdata), //8
+  .probe13(buff_cmd.valid), //1
+  .probe14(buff_cmd.ready), //1
+  .probe15(buff_cmd.data), //64
+  .probe16(comm_meta.valid), //1
+  .probe17(comm_meta.ready), //1
+  .probe18(comm_meta.data), //64
+  .probe19(ap_clr), //1
+  .probe20(ap_start), //1
+  .probe21(ap_done), //1
+  .probe22(exp_tx_net_pkt), //64
+  .probe23(exp_rx_net_pkt), //64
+  .probe24(batchMaxTimer), //64
   .probe25(axi_ctrl.wstrb) //8
  ); 
 `endif

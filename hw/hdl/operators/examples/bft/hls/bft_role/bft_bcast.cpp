@@ -35,27 +35,6 @@ using namespace hls;
 using namespace std;
 
 
-#define DWIDTH512 512
-#define DWIDTH256 256
-#define DWIDTH128 128
-#define DWIDTH64 64
-#define DWIDTH32 32
-#define DWIDTH16 16
-#define DWIDTH8 8
-
-
-typedef ap_axiu<DWIDTH512, 0, 0, 0> pkt512;
-typedef ap_axiu<DWIDTH256, 0, 0, 0> pkt256;
-typedef ap_axiu<DWIDTH128, 0, 0, 0> pkt128;
-typedef ap_axiu<DWIDTH64, 0, 0, 0> pkt64;
-typedef ap_axiu<DWIDTH32, 0, 0, 0> pkt32;
-typedef ap_axiu<DWIDTH16, 0, 0, 0> pkt16;
-typedef ap_axiu<DWIDTH8, 0, 0, 0> pkt8;
-
-#ifndef __SYNTHESIS__
-void printPktWordByByte (net_axis<512> currWord);
-#endif
-
 // The bcast data is stored in a bram for iterative reading and 
 // the scatter data is consumed sequentially from the input stream
 // This function splits the input stream to two streams according to the command information
@@ -78,13 +57,15 @@ void bcast_stream_handler(
     #pragma HLS bind_storage variable=bcast_buffer type=RAM_2P impl=BRAM
 	#pragma HLS DEPENDENCE variable=bcast_buffer inter false
 
-    static net_axis<512> currWord;
-
     static headerType headerWord;
 
     static ap_uint<32> procWord = 0;
 
-    static ap_uint<32> currRank = 0;
+    static ap_uint<32> dstRank = 0;
+
+    static bool firstRank = true;
+
+    static ap_uint<31> bcastCnt = 0;
     
     switch(State)
     {
@@ -97,18 +78,24 @@ void bcast_stream_handler(
         break;
         case BCAST_CMD:
             // write the header out if current rank doesn't equal to local rank
-            if(currRank != headerWord.src){
-                headerWord.dst = currRank;
-                m_meta.write(headerWord);
+            if(dstRank != headerWord.totalRank)
+            {
+                if(dstRank != headerWord.src){
+                    headerWord.dst = dstRank;
+                    m_meta.write(headerWord);
+                } 
+                dstRank ++;
+            } else {
+                dstRank = 0;
                 State = BCAST_DATA;
             }
-            currRank++;
+            
         break;
         case BCAST_DATA:
             // if this is the first payload of the bcast scatter primitive
             // read the whole bcast payload, send it to the tx net stream
             // and stores it into the bcast bram
-            if (currRank == 1)
+            if (firstRank)
             {
                 if (!s_axis.empty())
                 {
@@ -131,15 +118,14 @@ void bcast_stream_handler(
                     
                     if (bcastStreamWord.last)
                     {
+                        bcastCnt++;
                         procWord = 0;
-                        if (currRank == headerWord.totalRank)
+                        firstRank = false;
+                        if (bcastCnt == headerWord.totalRank-1)
                         {
-                            currRank = 0;
+                            bcastCnt = 0;
                             State = PARSE_CMD;
-                        }
-                        else 
-                        {
-                            State = BCAST_CMD;
+                            firstRank = true;
                         }
                     }
                   
@@ -163,18 +149,17 @@ void bcast_stream_handler(
                 procWord ++;
 
                 if (bcastStreamWord.last)
-                {
-                    procWord = 0;
-                    if (currRank == headerWord.totalRank)
                     {
-                        currRank = 0;
-                        State = PARSE_CMD;
+                        bcastCnt++;
+                        procWord = 0;
+                        firstRank = false;
+                        if (bcastCnt == headerWord.totalRank-1)
+                        {
+                            bcastCnt = 0;
+                            State = PARSE_CMD;
+                            firstRank = true;
+                        }
                     }
-                    else 
-                    {
-                        State = BCAST_CMD;
-                    }
-                }
                 
                 #ifndef __SYNTHESIS__
                 // printPktWordByByte(bcastStreamWord);

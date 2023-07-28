@@ -222,6 +222,17 @@ axis_register_slice_width_512 reg_slice_512 (
 
 
 `ifdef DEBUG_AUTH_PIPE
+    logic [63:0] execution_cycles;
+
+    always @( posedge aclk ) begin 
+        if (~aresetn) begin
+            execution_cycles <= '0;
+        end
+        else begin
+            execution_cycles <= execution_cycles + 1'b1;
+        end
+    end
+
     if (PIPE_INDEX == 0) begin
         ila_auth_pipe ila_auth_pipe
         (
@@ -232,10 +243,10 @@ axis_register_slice_width_512 reg_slice_512 (
             .probe2(auth_msg_s0.tlast), //1
             .probe3(auth_msg_s0.tdata), // 512
             // internal
-            .probe4(auth_msg_w32_s0.valid), //1
-            .probe5(auth_msg_w32_s0.ready), //1
-            .probe6(auth_msg_s3.valid), //1
-            .probe7(auth_msg_s3.ready), // 1
+            .probe4(auth_msg_w32_s0.tvalid), //1
+            .probe5(auth_msg_w32_s0.tready), //1
+            .probe6(auth_msg_s3.tvalid), //1
+            .probe7(auth_msg_s3.tready), // 1
             // meta
             .probe8(auth_meta_s0.valid), // 1
             .probe9(auth_meta_s0.ready), //1
@@ -249,7 +260,9 @@ axis_register_slice_width_512 reg_slice_512 (
             .probe14(auth_out_s0.tdata), //512
             .probe15(auth_out_s0.tvalid), //1
             .probe16(auth_out_s0.tready), //1
-            .probe17(auth_out_s0.tlast) // 1
+            .probe17(auth_out_s0.tlast), // 1
+
+            .probe18(execution_cycles) //64
         );
     end
 `endif 

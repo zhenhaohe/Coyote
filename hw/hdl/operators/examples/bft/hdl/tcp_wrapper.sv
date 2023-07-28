@@ -44,22 +44,12 @@ module tcp_wrapper (
     input wire [63:0]           maxPkgWord,
 
     // User Interface
-    metaIntf.s                  open_con_cmd,
-    metaIntf.s                  open_port_cmd,
-    metaIntf.s                  close_con_cmd,
-    metaIntf.m                  open_con_sts,
-    metaIntf.m                  open_port_sts,
     AXI4S.s                     netTxData,
     metaIntf.s                  netTxMeta,
     AXI4S.m                     netRxData,
     metaIntf.m                  netRxMeta,
 
     // TCP/IP QSFP0 CMD
-    metaIntf.m			        tcp_0_listen_req,
-    metaIntf.s			        tcp_0_listen_rsp,
-    metaIntf.m			        tcp_0_open_req,
-    metaIntf.s			        tcp_0_open_rsp,
-    metaIntf.m			        tcp_0_close_req,
     metaIntf.s			        tcp_0_notify,
     metaIntf.m			        tcp_0_rd_pkg,
     metaIntf.s			        tcp_0_rx_meta,
@@ -93,16 +83,6 @@ always @(posedge aclk) begin
 end
 
 // TCP interface
-
-wire [7:0]tcp_listen_rsp_TDATA;
-wire tcp_listen_rsp_TREADY;
-wire tcp_listen_rsp_TVALID;
-
-assign tcp_listen_rsp_TDATA = tcp_0_listen_rsp.data;
-
-assign tcp_listen_rsp_TVALID = tcp_0_listen_rsp.valid;
-assign tcp_0_listen_rsp.ready = tcp_listen_rsp_TREADY;
-
 wire [127:0]tcp_notify_TDATA;
 wire tcp_notify_TREADY;
 wire tcp_notify_TVALID;
@@ -117,18 +97,6 @@ assign tcp_notify_TDATA[127:81] = 0;
 assign tcp_notify_TVALID = tcp_0_notify.valid;
 assign tcp_0_notify.ready = tcp_notify_TREADY;
 
-wire [127:0]tcp_open_rsp_TDATA;
-wire tcp_open_rsp_TREADY;
-wire tcp_open_rsp_TVALID;
-
-assign tcp_open_rsp_TDATA[15:0] = tcp_0_open_rsp.data.sid; //session
-assign tcp_open_rsp_TDATA[23:16] = tcp_0_open_rsp.data.success;
-assign tcp_open_rsp_TDATA[55:24] = tcp_0_open_rsp.data.ip_address;
-assign tcp_open_rsp_TDATA[71:56] = tcp_0_open_rsp.data.ip_port;
-assign tcp_open_rsp_TDATA[127:72] = 0;
-
-assign tcp_open_rsp_TVALID = tcp_0_open_rsp.valid;
-assign tcp_0_open_rsp.ready = tcp_open_rsp_TREADY;
 
 wire [15:0]tcp_rx_meta_TDATA;
 wire tcp_rx_meta_TREADY;
@@ -170,27 +138,6 @@ assign tcp_0_rd_pkg.data.len = tcp_rd_package_TDATA[31:16];
 
 assign tcp_0_rd_pkg.valid = tcp_rd_package_TVALID;
 assign tcp_rd_package_TREADY = tcp_0_rd_pkg.ready;
-
-wire [15:0]tcp_listen_req_TDATA;
-wire tcp_listen_req_TREADY;
-wire tcp_listen_req_TVALID;
-
-assign tcp_0_listen_req.data = tcp_listen_req_TDATA;
-
-assign tcp_0_listen_req.valid = tcp_listen_req_TVALID;
-assign tcp_listen_req_TREADY = tcp_0_listen_req.ready;
-
-wire [63:0]tcp_open_req_TDATA;
-wire tcp_open_req_TREADY;
-wire tcp_open_req_TVALID;
-
-assign tcp_0_open_req.data.ip_address = tcp_open_req_TDATA[31:0];
-assign tcp_0_open_req.data.ip_port = tcp_open_req_TDATA[47:32];
-
-assign tcp_0_open_req.valid = tcp_open_req_TVALID;
-assign tcp_open_req_TREADY = tcp_0_open_req.ready;
-
-assign close_con_cmd.ready = 1'b1;
 
 logic [63:0] axis_tcp_0_sink_ready_down, axis_tcp_0_src_ready_down;
 
@@ -244,18 +191,6 @@ tcp_intf_wrapper tcp_intf_wrapper
     .axis_tcp_src_tready(axis_tcp_0_src_reg.tready),
     .axis_tcp_src_tstrb(),
     .axis_tcp_src_tvalid(axis_tcp_0_src_reg.tvalid),
-    .open_con_cmd_tdata(open_con_cmd.data),
-    .open_con_cmd_tready(open_con_cmd.ready),
-    .open_con_cmd_tvalid(open_con_cmd.valid),
-    .open_con_sts_tdata(open_con_sts.data),
-    .open_con_sts_tready(open_con_sts.ready),
-    .open_con_sts_tvalid(open_con_sts.valid),
-    .open_port_cmd_tdata(open_port_cmd.data),
-    .open_port_cmd_tready(open_port_cmd.ready),
-    .open_port_cmd_tvalid(open_port_cmd.valid),
-    .open_port_sts_tdata(open_port_sts.data),
-    .open_port_sts_tready(open_port_sts.ready),
-    .open_port_sts_tvalid(open_port_sts.valid),
     .rx_data_tdata(netRxData.tdata),
     .rx_data_tkeep(netRxData.tkeep),
     .rx_data_tlast(netRxData.tlast),
@@ -265,21 +200,9 @@ tcp_intf_wrapper tcp_intf_wrapper
     .rx_meta_tdata(netRxMeta.data),
     .rx_meta_tready(netRxMeta.ready),
     .rx_meta_tvalid(netRxMeta.valid),
-    .tcp_listen_req_tdata(tcp_listen_req_TDATA),
-    .tcp_listen_req_tready(tcp_listen_req_TREADY),
-    .tcp_listen_req_tvalid(tcp_listen_req_TVALID),
-    .tcp_listen_rsp_tdata(tcp_listen_rsp_TDATA),
-    .tcp_listen_rsp_tready(tcp_listen_rsp_TREADY),
-    .tcp_listen_rsp_tvalid(tcp_listen_rsp_TVALID),
     .tcp_notify_tdata(tcp_notify_TDATA),
     .tcp_notify_tready(tcp_notify_TREADY),
     .tcp_notify_tvalid(tcp_notify_TVALID),
-    .tcp_open_req_tdata(tcp_open_req_TDATA),
-    .tcp_open_req_tready(tcp_open_req_TREADY),
-    .tcp_open_req_tvalid(tcp_open_req_TVALID),
-    .tcp_open_rsp_tdata(tcp_open_rsp_TDATA),
-    .tcp_open_rsp_tready(tcp_open_rsp_TREADY),
-    .tcp_open_rsp_tvalid(tcp_open_rsp_TVALID),
     .tcp_rd_package_tdata(tcp_rd_package_TDATA),
     .tcp_rd_package_tready(tcp_rd_package_TREADY),
     .tcp_rd_package_tvalid(tcp_rd_package_TVALID),
@@ -334,51 +257,31 @@ assign net_tx_cmd_error = tx_status_error_cnt;
 ila_tcp tcp_debug (
   .clk(aclk), // input wire clk
 
-  .probe0(tcp_0_open_req.valid), // 1  
-  .probe1(tcp_0_open_req.ready), // 1  
-  .probe2(tcp_0_open_req.data.ip_address), // 32    
-  .probe3(tcp_0_open_req.data.ip_port), // 16 
-  .probe4(tcp_0_open_rsp.valid), // 1   
-  .probe5(tcp_0_open_rsp.ready), // 1                      
-  .probe6(tcp_0_open_rsp.data.sid), // 16                      
-  .probe7(tcp_0_open_rsp.data.success), // 1                        
-  .probe8(tcp_0_listen_req.valid),    //1                                                
-  .probe9(tcp_0_listen_req.ready),//1
-  .probe10(tcp_0_listen_req.data[15:0]),//16
-  .probe11(tcp_0_listen_rsp.valid),//1
-  .probe12(tcp_0_listen_rsp.ready),//1
-  .probe13(tcp_0_listen_rsp.data[0]), //1
-  .probe14(tcp_0_tx_stat.valid), //1    
-  .probe15(tcp_0_tx_stat.ready), //1
-  .probe16(tcp_0_tx_stat.data[63:0]), // 64
-  .probe17(tcp_0_tx_meta.valid), // 1
-  .probe18(tcp_0_tx_meta.ready),// 1 
-  .probe19(tcp_0_tx_meta.data[31:0]), // 32  
-  .probe20(axis_tcp_0_src.tvalid), // 1
-  .probe21(axis_tcp_0_src.tready), // 1
-  .probe22(axis_tcp_0_src.tlast), //1
-  .probe23(tcp_0_notify.valid), //1
-  .probe24(tcp_0_notify.ready), //1
-  .probe25(tcp_0_notify.data.sid), //16
-  .probe26(tcp_0_notify.data.len), //16
-  .probe27(tcp_0_rx_meta.valid), //1
-  .probe28(tcp_0_rx_meta.ready),//1
-  .probe29(tcp_0_rx_meta.data), //16
-  .probe30(tcp_0_rd_pkg.valid), //1
-  .probe31(tcp_0_rd_pkg.ready),  // 1
-  .probe32(tcp_0_rd_pkg.data),  // 32
-  .probe33(axis_tcp_0_sink.tvalid),   // 1
-  .probe34(axis_tcp_0_sink.tready),   //1
-  .probe35(axis_tcp_0_sink.tlast),    // 1
-  .probe36(open_con_sts.valid),                // 1
-  .probe37(open_con_sts.ready),              // 1
-  .probe38(open_con_sts.data),               //128
-  .probe39(open_port_sts.valid), //1
-  .probe40(open_port_sts.ready), //1
-  .probe41(open_port_sts.data), //32
-  .probe42(execution_cycles), //32
-  .probe43(consumed_bytes_network), //32
-  .probe44(produced_bytes_network) //32
+  .probe0(tcp_0_tx_stat.valid), //1    
+  .probe1(tcp_0_tx_stat.ready), //1
+  .probe2(tcp_0_tx_stat.data[63:0]), // 64
+  .probe3(tcp_0_tx_meta.valid), // 1
+  .probe4(tcp_0_tx_meta.ready),// 1 
+  .probe5(tcp_0_tx_meta.data[31:0]), // 32  
+  .probe6(axis_tcp_0_src.tvalid), // 1
+  .probe7(axis_tcp_0_src.tready), // 1
+  .probe8(axis_tcp_0_src.tlast), //1
+  .probe9(tcp_0_notify.valid), //1
+  .probe10(tcp_0_notify.ready), //1
+  .probe11(tcp_0_notify.data.sid), //16
+  .probe12(tcp_0_notify.data.len), //16
+  .probe13(tcp_0_rx_meta.valid), //1
+  .probe14(tcp_0_rx_meta.ready),//1
+  .probe15(tcp_0_rx_meta.data), //16
+  .probe16(tcp_0_rd_pkg.valid), //1
+  .probe17(tcp_0_rd_pkg.ready),  // 1
+  .probe18(tcp_0_rd_pkg.data),  // 32
+  .probe19(axis_tcp_0_sink.tvalid),   // 1
+  .probe20(axis_tcp_0_sink.tready),   //1
+  .probe21(axis_tcp_0_sink.tlast),    // 1
+  .probe22(execution_cycles), //32
+  .probe23(consumed_bytes_network), //32
+  .probe24(produced_bytes_network) //32
 );
 `endif 
 

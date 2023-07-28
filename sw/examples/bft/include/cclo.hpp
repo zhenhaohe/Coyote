@@ -50,7 +50,13 @@ private:
 public: 
 	
 	CCLO() : cproc(0, getpid()), Terminate(false), Verbose(false) {}
-	~CCLO(){};
+	~CCLO(){
+		for (int i=0; i<rxHandler.buf_queue.size(); i++)
+		{
+			freeMem(rxHandler.curr_buf().addr);
+			rxHandler.buf_queue.pop();
+		}
+	};
 
 	// initialize cclo
 	void init_cclo(std::vector<comm_rank> rank_vec, unsigned int local_rank, unsigned int total_rank, uint64_t rxBatchMaxTimer, uint64_t pkgWordCount);
@@ -58,7 +64,7 @@ public:
 	// communicator
 	void open_port (unsigned int port);
 
-	bool open_connection (unsigned int ip, unsigned int port, unsigned int rank);
+	void open_connection (unsigned int ip, unsigned int port, unsigned int rank);
 
 	void offload_communicator();
 
@@ -119,7 +125,7 @@ public:
 	}
 
 	void startKernel () {
-		cproc.setCSR(1, OFFSET_BFT_CRTL+BFT_CRTL::CONTROL);
+		cproc.setCSR(1, OFFSET_BFT_CRTL+BFT_CRTL::START);
 	}
 
 	// set flags
@@ -132,8 +138,7 @@ public:
 	}
 
 	void setClear() {
-		cproc.setCSR(1, OFFSET_INTF_CTRL+INTF_CTRL::CONTROL);
-		cproc.setCSR(1, OFFSET_BFT_CRTL+BFT_CRTL::CONTROL);
+		cproc.setCSR(1, OFFSET_BFT_CRTL+BFT_CRTL::CLEAR);
 	}
 
 

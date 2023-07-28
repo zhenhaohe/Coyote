@@ -270,7 +270,10 @@ ila_host host_debug (
 	.probe15(device2host_meta_reg.valid),
 	.probe16(device2host_meta_reg.ready),
 	.probe17(device2host_reg.tvalid),
-	.probe18(device2host_reg.tready)
+	.probe18(device2host_reg.tready),
+	.probe19(host2device.tvalid),
+	.probe20(host2device.tready),
+	.probe21(host2device.tdata) //512
 );
 `endif 
 

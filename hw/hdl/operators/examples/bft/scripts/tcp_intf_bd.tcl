@@ -121,9 +121,9 @@ if { $nRet != 0 } {
 
 update_ip_catalog
 
-create_ip -name tcp_openConReq -vendor ethz.systems.fpga -library hls -version 1.0 -module_name tcp_openConReq_0
-create_ip -name tcp_openConResp -vendor ethz.systems.fpga -library hls -version 1.0 -module_name tcp_openConResp_0
-create_ip -name tcp_openPort -vendor ethz.systems.fpga -library hls -version 1.0 -module_name tcp_openPort_0
+# create_ip -name tcp_openConReq -vendor ethz.systems.fpga -library hls -version 1.0 -module_name tcp_openConReq_0
+# create_ip -name tcp_openConResp -vendor ethz.systems.fpga -library hls -version 1.0 -module_name tcp_openConResp_0
+# create_ip -name tcp_openPort -vendor ethz.systems.fpga -library hls -version 1.0 -module_name tcp_openPort_0
 create_ip -name tcp_rxHandler -vendor ethz.systems.fpga -library hls -version 1.0 -module_name tcp_rxHandler_0
 create_ip -name tcp_txHandler -vendor ethz.systems.fpga -library hls -version 1.0 -module_name tcp_txHandler_0
 set bCheckIPsPassed 1
@@ -134,9 +134,6 @@ set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\ 
 xilinx.com:ip:axis_data_fifo:2.0\
-ethz.systems.fpga:hls:tcp_openConReq:1.0\
-ethz.systems.fpga:hls:tcp_openConResp:1.0\
-ethz.systems.fpga:hls:tcp_openPort:1.0\
 ethz.systems.fpga:hls:tcp_rxHandler:1.0\
 ethz.systems.fpga:hls:tcp_txHandler:1.0\
 "
@@ -621,43 +618,43 @@ proc create_root_design { parentCell } {
    CONFIG.FREQ_HZ {250000000} \
    ] $axis_tcp_src
 
-  set open_con_cmd [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 open_con_cmd ]
-  set_property -dict [ list \
-   CONFIG.FREQ_HZ {250000000} \
-   CONFIG.HAS_TKEEP {0} \
-   CONFIG.HAS_TLAST {0} \
-   CONFIG.HAS_TREADY {1} \
-   CONFIG.HAS_TSTRB {0} \
-   CONFIG.LAYERED_METADATA {undef} \
-   CONFIG.TDATA_NUM_BYTES {8} \
-   CONFIG.TDEST_WIDTH {0} \
-   CONFIG.TID_WIDTH {0} \
-   CONFIG.TUSER_WIDTH {0} \
-   ] $open_con_cmd
+#   set open_con_cmd [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 open_con_cmd ]
+#   set_property -dict [ list \
+#    CONFIG.FREQ_HZ {250000000} \
+#    CONFIG.HAS_TKEEP {0} \
+#    CONFIG.HAS_TLAST {0} \
+#    CONFIG.HAS_TREADY {1} \
+#    CONFIG.HAS_TSTRB {0} \
+#    CONFIG.LAYERED_METADATA {undef} \
+#    CONFIG.TDATA_NUM_BYTES {8} \
+#    CONFIG.TDEST_WIDTH {0} \
+#    CONFIG.TID_WIDTH {0} \
+#    CONFIG.TUSER_WIDTH {0} \
+#    ] $open_con_cmd
 
-  set open_con_sts [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 open_con_sts ]
-  set_property -dict [ list \
-   CONFIG.FREQ_HZ {250000000} \
-   ] $open_con_sts
+#   set open_con_sts [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 open_con_sts ]
+#   set_property -dict [ list \
+#    CONFIG.FREQ_HZ {250000000} \
+#    ] $open_con_sts
 
-  set open_port_cmd [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 open_port_cmd ]
-  set_property -dict [ list \
-   CONFIG.FREQ_HZ {250000000} \
-   CONFIG.HAS_TKEEP {0} \
-   CONFIG.HAS_TLAST {0} \
-   CONFIG.HAS_TREADY {1} \
-   CONFIG.HAS_TSTRB {0} \
-   CONFIG.LAYERED_METADATA {undef} \
-   CONFIG.TDATA_NUM_BYTES {4} \
-   CONFIG.TDEST_WIDTH {0} \
-   CONFIG.TID_WIDTH {0} \
-   CONFIG.TUSER_WIDTH {0} \
-   ] $open_port_cmd
+#   set open_port_cmd [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 open_port_cmd ]
+#   set_property -dict [ list \
+#    CONFIG.FREQ_HZ {250000000} \
+#    CONFIG.HAS_TKEEP {0} \
+#    CONFIG.HAS_TLAST {0} \
+#    CONFIG.HAS_TREADY {1} \
+#    CONFIG.HAS_TSTRB {0} \
+#    CONFIG.LAYERED_METADATA {undef} \
+#    CONFIG.TDATA_NUM_BYTES {4} \
+#    CONFIG.TDEST_WIDTH {0} \
+#    CONFIG.TID_WIDTH {0} \
+#    CONFIG.TUSER_WIDTH {0} \
+#    ] $open_port_cmd
 
-  set open_port_sts [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 open_port_sts ]
-  set_property -dict [ list \
-   CONFIG.FREQ_HZ {250000000} \
-   ] $open_port_sts
+#   set open_port_sts [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 open_port_sts ]
+#   set_property -dict [ list \
+#    CONFIG.FREQ_HZ {250000000} \
+#    ] $open_port_sts
 
   set rx_data [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 rx_data ]
   set_property -dict [ list \
@@ -669,24 +666,24 @@ proc create_root_design { parentCell } {
    CONFIG.FREQ_HZ {250000000} \
    ] $rx_meta
 
-  set tcp_listen_req [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 tcp_listen_req ]
-  set_property -dict [ list \
-   CONFIG.FREQ_HZ {250000000} \
-   ] $tcp_listen_req
+#   set tcp_listen_req [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 tcp_listen_req ]
+#   set_property -dict [ list \
+#    CONFIG.FREQ_HZ {250000000} \
+#    ] $tcp_listen_req
 
-  set tcp_listen_rsp [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 tcp_listen_rsp ]
-  set_property -dict [ list \
-   CONFIG.FREQ_HZ {250000000} \
-   CONFIG.HAS_TKEEP {0} \
-   CONFIG.HAS_TLAST {0} \
-   CONFIG.HAS_TREADY {1} \
-   CONFIG.HAS_TSTRB {0} \
-   CONFIG.LAYERED_METADATA {undef} \
-   CONFIG.TDATA_NUM_BYTES {1} \
-   CONFIG.TDEST_WIDTH {0} \
-   CONFIG.TID_WIDTH {0} \
-   CONFIG.TUSER_WIDTH {0} \
-   ] $tcp_listen_rsp
+#   set tcp_listen_rsp [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 tcp_listen_rsp ]
+#   set_property -dict [ list \
+#    CONFIG.FREQ_HZ {250000000} \
+#    CONFIG.HAS_TKEEP {0} \
+#    CONFIG.HAS_TLAST {0} \
+#    CONFIG.HAS_TREADY {1} \
+#    CONFIG.HAS_TSTRB {0} \
+#    CONFIG.LAYERED_METADATA {undef} \
+#    CONFIG.TDATA_NUM_BYTES {1} \
+#    CONFIG.TDEST_WIDTH {0} \
+#    CONFIG.TID_WIDTH {0} \
+#    CONFIG.TUSER_WIDTH {0} \
+#    ] $tcp_listen_rsp
 
   set tcp_notify [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 tcp_notify ]
   set_property -dict [ list \
@@ -702,24 +699,24 @@ proc create_root_design { parentCell } {
    CONFIG.TUSER_WIDTH {0} \
    ] $tcp_notify
 
-  set tcp_open_req [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 tcp_open_req ]
-  set_property -dict [ list \
-   CONFIG.FREQ_HZ {250000000} \
-   ] $tcp_open_req
+#   set tcp_open_req [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 tcp_open_req ]
+#   set_property -dict [ list \
+#    CONFIG.FREQ_HZ {250000000} \
+#    ] $tcp_open_req
 
-  set tcp_open_rsp [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 tcp_open_rsp ]
-  set_property -dict [ list \
-   CONFIG.FREQ_HZ {250000000} \
-   CONFIG.HAS_TKEEP {0} \
-   CONFIG.HAS_TLAST {0} \
-   CONFIG.HAS_TREADY {1} \
-   CONFIG.HAS_TSTRB {0} \
-   CONFIG.LAYERED_METADATA {undef} \
-   CONFIG.TDATA_NUM_BYTES {16} \
-   CONFIG.TDEST_WIDTH {0} \
-   CONFIG.TID_WIDTH {0} \
-   CONFIG.TUSER_WIDTH {0} \
-   ] $tcp_open_rsp
+#   set tcp_open_rsp [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 tcp_open_rsp ]
+#   set_property -dict [ list \
+#    CONFIG.FREQ_HZ {250000000} \
+#    CONFIG.HAS_TKEEP {0} \
+#    CONFIG.HAS_TLAST {0} \
+#    CONFIG.HAS_TREADY {1} \
+#    CONFIG.HAS_TSTRB {0} \
+#    CONFIG.LAYERED_METADATA {undef} \
+#    CONFIG.TDATA_NUM_BYTES {16} \
+#    CONFIG.TDEST_WIDTH {0} \
+#    CONFIG.TID_WIDTH {0} \
+#    CONFIG.TUSER_WIDTH {0} \
+#    ] $tcp_open_rsp
 
   set tcp_rd_package [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 tcp_rd_package ]
   set_property -dict [ list \
@@ -791,17 +788,17 @@ proc create_root_design { parentCell } {
   # Create ports
   set ap_clk [ create_bd_port -dir I -type clk -freq_hz 250000000 ap_clk ]
   set_property -dict [ list \
-   CONFIG.ASSOCIATED_BUSIF {tcp_listen_rsp:tcp_listen_req:open_port_cmd:open_con_cmd:tcp_open_rsp:open_port_sts:tcp_open_req:open_con_sts:tx_data:tcp_tx_meta:axis_tcp_src:tcp_tx_stat:tcp_rx_meta:tcp_notify:axis_tcp_sink:tx_meta:tcp_rd_package:rx_data:rx_meta} \
+   CONFIG.ASSOCIATED_BUSIF {tx_data:tcp_tx_meta:axis_tcp_src:tcp_tx_stat:tcp_rx_meta:tcp_notify:axis_tcp_sink:tx_meta:tcp_rd_package:rx_data:rx_meta} \
    CONFIG.ASSOCIATED_RESET {ap_rst_n} \
  ] $ap_clk
   set ap_rst_n [ create_bd_port -dir I -type rst ap_rst_n ]
   set maxPkgWord [ create_bd_port -dir I -from 31 -to 0 -type data maxPkgWord ]
 
-  # Create instance: openCon_handler
-  create_hier_cell_openCon_handler [current_bd_instance .] openCon_handler
+#   # Create instance: openCon_handler
+#   create_hier_cell_openCon_handler [current_bd_instance .] openCon_handler
 
-  # Create instance: openPort_handler
-  create_hier_cell_openPort_handler [current_bd_instance .] openPort_handler
+#   # Create instance: openPort_handler
+#   create_hier_cell_openPort_handler [current_bd_instance .] openPort_handler
 
   # Create instance: rxHandler
   create_hier_cell_rxHandler [current_bd_instance .] rxHandler
@@ -811,18 +808,18 @@ proc create_root_design { parentCell } {
 
   # Create interface connections
   connect_bd_intf_net -intf_net axis_tcp_sink_2 [get_bd_intf_ports axis_tcp_sink] [get_bd_intf_pins rxHandler/axis_tcp_sink]
-  connect_bd_intf_net -intf_net openCon_handler_open_con_sts [get_bd_intf_ports open_con_sts] [get_bd_intf_pins openCon_handler/open_con_sts]
-  connect_bd_intf_net -intf_net openCon_handler_tcp_open_req [get_bd_intf_ports tcp_open_req] [get_bd_intf_pins openCon_handler/tcp_open_req]
-  connect_bd_intf_net -intf_net openPort_handler_open_port_sts [get_bd_intf_ports open_port_sts] [get_bd_intf_pins openPort_handler/open_port_sts]
-  connect_bd_intf_net -intf_net openPort_handler_tcp_listen_req [get_bd_intf_ports tcp_listen_req] [get_bd_intf_pins openPort_handler/tcp_listen_req]
-  connect_bd_intf_net -intf_net open_con_cmd_1 [get_bd_intf_ports open_con_cmd] [get_bd_intf_pins openCon_handler/open_con_cmd]
-  connect_bd_intf_net -intf_net open_port_cmd_1 [get_bd_intf_ports open_port_cmd] [get_bd_intf_pins openPort_handler/open_port_cmd]
+#   connect_bd_intf_net -intf_net openCon_handler_open_con_sts [get_bd_intf_ports open_con_sts] [get_bd_intf_pins openCon_handler/open_con_sts]
+#   connect_bd_intf_net -intf_net openCon_handler_tcp_open_req [get_bd_intf_ports tcp_open_req] [get_bd_intf_pins openCon_handler/tcp_open_req]
+#   connect_bd_intf_net -intf_net openPort_handler_open_port_sts [get_bd_intf_ports open_port_sts] [get_bd_intf_pins openPort_handler/open_port_sts]
+#   connect_bd_intf_net -intf_net openPort_handler_tcp_listen_req [get_bd_intf_ports tcp_listen_req] [get_bd_intf_pins openPort_handler/tcp_listen_req]
+#   connect_bd_intf_net -intf_net open_con_cmd_1 [get_bd_intf_ports open_con_cmd] [get_bd_intf_pins openCon_handler/open_con_cmd]
+#   connect_bd_intf_net -intf_net open_port_cmd_1 [get_bd_intf_ports open_port_cmd] [get_bd_intf_pins openPort_handler/open_port_cmd]
   connect_bd_intf_net -intf_net rxHandler_rx_data [get_bd_intf_ports rx_data] [get_bd_intf_pins rxHandler/rx_data]
   connect_bd_intf_net -intf_net rxHandler_rx_meta [get_bd_intf_ports rx_meta] [get_bd_intf_pins rxHandler/rx_meta]
   connect_bd_intf_net -intf_net rxHandler_tcp_rd_package [get_bd_intf_ports tcp_rd_package] [get_bd_intf_pins rxHandler/tcp_rd_package]
-  connect_bd_intf_net -intf_net tcp_listen_rsp_1 [get_bd_intf_ports tcp_listen_rsp] [get_bd_intf_pins openPort_handler/tcp_listen_rsp]
+#   connect_bd_intf_net -intf_net tcp_listen_rsp_1 [get_bd_intf_ports tcp_listen_rsp] [get_bd_intf_pins openPort_handler/tcp_listen_rsp]
   connect_bd_intf_net -intf_net tcp_notify_1 [get_bd_intf_ports tcp_notify] [get_bd_intf_pins rxHandler/tcp_notify]
-  connect_bd_intf_net -intf_net tcp_open_rsp_1 [get_bd_intf_ports tcp_open_rsp] [get_bd_intf_pins openCon_handler/tcp_open_rsp]
+#   connect_bd_intf_net -intf_net tcp_open_rsp_1 [get_bd_intf_ports tcp_open_rsp] [get_bd_intf_pins openCon_handler/tcp_open_rsp]
   connect_bd_intf_net -intf_net tcp_rx_meta_1 [get_bd_intf_ports tcp_rx_meta] [get_bd_intf_pins rxHandler/tcp_rx_meta]
   connect_bd_intf_net -intf_net tcp_tx_stat_1 [get_bd_intf_ports tcp_tx_stat] [get_bd_intf_pins txHandler/tcp_tx_stat]
   connect_bd_intf_net -intf_net txHandler_axis_tcp_src [get_bd_intf_ports axis_tcp_src] [get_bd_intf_pins txHandler/axis_tcp_src]
@@ -831,8 +828,8 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net tx_meta_1 [get_bd_intf_ports tx_meta] [get_bd_intf_pins txHandler/tx_meta]
 
   # Create port connections
-  connect_bd_net -net ap_clk_1 [get_bd_ports ap_clk] [get_bd_pins openCon_handler/ap_clk] [get_bd_pins openPort_handler/ap_clk] [get_bd_pins rxHandler/ap_clk] [get_bd_pins txHandler/ap_clk]
-  connect_bd_net -net ap_rst_n_1 [get_bd_ports ap_rst_n] [get_bd_pins openCon_handler/ap_rst_n] [get_bd_pins openPort_handler/ap_rst_n] [get_bd_pins rxHandler/ap_rst_n] [get_bd_pins txHandler/ap_rst_n]
+  connect_bd_net -net ap_clk_1 [get_bd_ports ap_clk] [get_bd_pins rxHandler/ap_clk] [get_bd_pins txHandler/ap_clk]
+  connect_bd_net -net ap_rst_n_1 [get_bd_ports ap_rst_n] [get_bd_pins rxHandler/ap_rst_n] [get_bd_pins txHandler/ap_rst_n]
   connect_bd_net -net maxPkgWord_1 [get_bd_ports maxPkgWord] [get_bd_pins txHandler/maxPkgWord]
 
   # Create address segments
@@ -855,11 +852,3 @@ create_root_design ""
 
 make_wrapper -files [get_files $build_dir/lynx/lynx.srcs/sources_1/bd/tcp_intf/tcp_intf.bd] -top
 add_files -norecurse $build_dir/lynx/lynx.gen/sources_1/bd/tcp_intf/hdl/tcp_intf_wrapper.v
-
-# ipx::package_project -root_dir $script_folder/build_tcp_intf -vendor user.org -library user -taxonomy /UserIP -module tcp_intf
-# set_property core_revision 2 [ipx::find_open_core user.org:user:tcp_intf:1.0]
-# ipx::create_xgui_files [ipx::find_open_core user.org:user:tcp_intf:1.0]
-# ipx::update_checksums [ipx::find_open_core user.org:user:tcp_intf:1.0]
-# ipx::save_core [ipx::find_open_core user.org:user:tcp_intf:1.0]
-# ipx::check_integrity -quiet [ipx::find_open_core user.org:user:tcp_intf:1.0]
-# ipx::archive_core $script_folder/build_tcp_intf/user.org_user_tcp_intf_1.0.zip [ipx::find_open_core user.org:user:tcp_intf:1.0]

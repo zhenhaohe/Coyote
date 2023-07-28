@@ -31,11 +31,11 @@ function(add_custom_target_with_dependency TARGET_NAME DEPENDENCY_NAME)
 endfunction()
 
 foreach (target ${HLS_TARGETS})
-    add_custom_target_with_dependency(${target} tcp_openConResp)
-    add_custom_target_with_dependency(${target} tcp_openPort)
+    # add_custom_target_with_dependency(${target} tcp_openConResp)
+    # add_custom_target_with_dependency(${target} tcp_openPort)
     add_custom_target_with_dependency(${target} tcp_rxHandler)
     add_custom_target_with_dependency(${target} tcp_txHandler)
-    add_custom_target_with_dependency(${target} tcp_openConReq)
+    # add_custom_target_with_dependency(${target} tcp_openConReq)
 endforeach()
 
 # Installation

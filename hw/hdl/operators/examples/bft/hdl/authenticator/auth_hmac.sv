@@ -92,6 +92,18 @@ hmac_sha256 hmac_sha256(
 assign eHshStrm.ready = 1'b1;
 
 `ifdef DEBUG_AUTH_HMAC
+
+    logic [63:0] execution_cycles;
+
+    always @( posedge aclk ) begin 
+        if (~aresetn) begin
+            execution_cycles <= '0;
+        end
+        else begin
+            execution_cycles <= execution_cycles + 1'b1;
+        end
+    end
+    
     if (PIPE_INDEX == 0) begin
         ila_auth_hmac ila_auth_hmac
         (
@@ -113,7 +125,8 @@ assign eHshStrm.ready = 1'b1;
             .probe14(msgStrm.data), //32
             .probe15(lenStrm_s1.data), //64
             .probe16(keyStrm.data), //32
-            .probe17(eHshStrm.valid) // 1
+            .probe17(eHshStrm.valid), // 1
+            .probe18(execution_cycles) // 64
         );
     end 
 `endif 

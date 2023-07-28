@@ -34,25 +34,6 @@
 using namespace hls;
 using namespace std;
 
-#define DWIDTH512 512
-#define DWIDTH256 256
-#define DWIDTH128 128
-#define DWIDTH64 64
-#define DWIDTH32 32
-#define DWIDTH16 16
-#define DWIDTH8 8
-
-#ifndef __SYNTHESIS__
-void printPktWordByByte (net_axis<512> currWord);
-#endif
-
-typedef ap_axiu<DWIDTH512, 0, 0, 0> pkt512;
-typedef ap_axiu<DWIDTH256, 0, 0, 0> pkt256;
-typedef ap_axiu<DWIDTH128, 0, 0, 0> pkt128;
-typedef ap_axiu<DWIDTH64, 0, 0, 0> pkt64;
-typedef ap_axiu<DWIDTH32, 0, 0, 0> pkt32;
-typedef ap_axiu<DWIDTH16, 0, 0, 0> pkt16;
-typedef ap_axiu<DWIDTH8, 0, 0, 0> pkt8;
 
 // Parse the msgHeader
 // The output of this FSM goes into a right shifter 

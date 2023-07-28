@@ -1,9 +1,27 @@
 #include "ap_axi_sdata.h"
 #include "hls_stream.h"
 #include "ap_int.h"
+#include "utils.hpp"
 
 using namespace hls;
 using namespace std;
+
+#define DWIDTH512 512
+#define DWIDTH256 256
+#define DWIDTH128 128
+#define DWIDTH64 64
+#define DWIDTH32 32
+#define DWIDTH16 16
+#define DWIDTH8 8
+
+
+typedef ap_axiu<DWIDTH512, 0, 0, 0> pkt512;
+typedef ap_axiu<DWIDTH256, 0, 0, 0> pkt256;
+typedef ap_axiu<DWIDTH128, 0, 0, 0> pkt128;
+typedef ap_axiu<DWIDTH64, 0, 0, 0> pkt64;
+typedef ap_axiu<DWIDTH32, 0, 0, 0> pkt32;
+typedef ap_axiu<DWIDTH16, 0, 0, 0> pkt16;
+typedef ap_axiu<DWIDTH8, 0, 0, 0> pkt8;
 
 // used in communicator and auth key handler
 #define MAX_NUM_RANK 16
@@ -80,4 +98,20 @@ struct headerType {
         ret(HEADER_TYPE_TOTALRANK_END, HEADER_TYPE_TOTALRANK_START) = totalRank;
         return ret;
     }
+
+    void print() const {
+    #ifndef __SYNTHESIS__
+        std::cout << "cmdID: " << cmdID
+                  << ", cmdLen: " << cmdLen
+                  << ", dst: " << dst
+                  << ", src: " << src
+                  << ", tag: " << tag
+                  << ", dataLen: " << dataLen
+                  << ", msgID: " << msgID
+                  << ", msgType: " << msgType
+                  << ", epochID: " << epochID
+                  << ", totalRank: " << totalRank << std::endl;
+    #endif
+    }
 };
+

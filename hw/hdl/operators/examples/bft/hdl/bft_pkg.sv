@@ -7,7 +7,7 @@ package bftTypes;
     `define ILA_HOST_DEBUG
     `define DEBUG_CNFG_SLAVE
     //`define DEBUG_AUTH_ROLE
-    //`define DEBUG_AUTH_PIPE
+    `define DEBUG_AUTH_PIPE
     `define DEBUG_AUTH_HMAC
 
 

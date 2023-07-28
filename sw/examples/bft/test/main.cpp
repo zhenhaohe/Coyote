@@ -51,6 +51,7 @@ struct options_t
     uint32_t recvBufSize;
     uint32_t msgBytes;
     uint32_t msgBytesR;
+    uint64_t offloadMode;
 
 	std::string logDir;
     std::string fpgaIpStr;
@@ -108,19 +109,19 @@ std::string format_log(CCLO* cproc, std::string exp, options_t options)
 {
     constexpr auto const freq = 250; // MHz
     
-    uint64_t consumed_bytes_host = cproc->getCSR(OFFSET_INTF_CTRL+INTF_CTRL::CONSUMED_BYTES_HOST);
-    uint64_t produced_bytes_host = cproc->getCSR(OFFSET_INTF_CTRL+INTF_CTRL::PRODUCED_BYTES_HOST);
-    uint64_t consumed_bytes_network = cproc->getCSR(OFFSET_INTF_CTRL+INTF_CTRL::CONSUMED_BYTES_NETWORK);
-    uint64_t produced_bytes_network = cproc->getCSR(OFFSET_INTF_CTRL+INTF_CTRL::PRODUCED_BYTES_NETWORK);
-    uint64_t consumed_pkt_network = cproc->getCSR(OFFSET_INTF_CTRL+INTF_CTRL::CONSUMED_PKT_NETWORK);
-    uint64_t produced_pkt_network = cproc->getCSR(OFFSET_INTF_CTRL+INTF_CTRL::PRODUCED_PKT_NETWORK);
-    uint64_t consumed_pkt_host = cproc->getCSR(OFFSET_INTF_CTRL+INTF_CTRL::CONSUMED_PKT_HOST);
-    uint64_t produced_pkt_host = cproc->getCSR(OFFSET_INTF_CTRL+INTF_CTRL::PRODUCED_PKT_HOST);
-    uint64_t device_net_down = cproc->getCSR(OFFSET_INTF_CTRL+INTF_CTRL::DEVICE_NET_DOWN);
-    uint64_t net_device_down = cproc->getCSR(OFFSET_INTF_CTRL+INTF_CTRL::NET_DEVICE_DOWN);
-    uint64_t host_device_down = cproc->getCSR(OFFSET_INTF_CTRL+INTF_CTRL::HOST_DEVICE_DOWN);
-    uint64_t device_host_down = cproc->getCSR(OFFSET_INTF_CTRL+INTF_CTRL::DEVICE_HOST_DOWN);
-    uint64_t net_tx_cmd_error = cproc->getCSR(OFFSET_INTF_CTRL+INTF_CTRL::NET_TX_CMD_ERROR);
+    uint64_t consumed_bytes_host = cproc->getCSR(OFFSET_BFT_CRTL+BFT_CRTL::CONSUMED_BYTES_HOST);
+    uint64_t produced_bytes_host = cproc->getCSR(OFFSET_BFT_CRTL+BFT_CRTL::PRODUCED_BYTES_HOST);
+    uint64_t consumed_bytes_network = cproc->getCSR(OFFSET_BFT_CRTL+BFT_CRTL::CONSUMED_BYTES_NETWORK);
+    uint64_t produced_bytes_network = cproc->getCSR(OFFSET_BFT_CRTL+BFT_CRTL::PRODUCED_BYTES_NETWORK);
+    uint64_t consumed_pkt_network = cproc->getCSR(OFFSET_BFT_CRTL+BFT_CRTL::CONSUMED_PKT_NETWORK);
+    uint64_t produced_pkt_network = cproc->getCSR(OFFSET_BFT_CRTL+BFT_CRTL::PRODUCED_PKT_NETWORK);
+    uint64_t consumed_pkt_host = cproc->getCSR(OFFSET_BFT_CRTL+BFT_CRTL::CONSUMED_PKT_HOST);
+    uint64_t produced_pkt_host = cproc->getCSR(OFFSET_BFT_CRTL+BFT_CRTL::PRODUCED_PKT_HOST);
+    uint64_t device_net_down = cproc->getCSR(OFFSET_BFT_CRTL+BFT_CRTL::DEVICE_NET_DOWN);
+    uint64_t net_device_down = cproc->getCSR(OFFSET_BFT_CRTL+BFT_CRTL::NET_DEVICE_DOWN);
+    uint64_t host_device_down = cproc->getCSR(OFFSET_BFT_CRTL+BFT_CRTL::HOST_DEVICE_DOWN);
+    uint64_t device_host_down = cproc->getCSR(OFFSET_BFT_CRTL+BFT_CRTL::DEVICE_HOST_DOWN);
+    uint64_t net_tx_cmd_error = cproc->getCSR(OFFSET_BFT_CRTL+BFT_CRTL::NET_TX_CMD_ERROR);
 
     uint64_t execution_cycles = cproc->getCSR(OFFSET_BFT_CRTL+BFT_CRTL::EXECUTION_CYCLES);
 
@@ -133,9 +134,9 @@ std::string format_log(CCLO* cproc, std::string exp, options_t options)
     double txNetPktRate = (double) produced_pkt_network / ((double)latency/1000000.0);
     double rxHostPktRate = (double) consumed_pkt_host / ((double)latency/1000000.0);
     double txHostPktRate = (double) produced_pkt_host / ((double)latency/1000000.0);
-    std::string head_str = "exp,totalRank,localRank,pkgWordCount,payloadSize,numMsg,authenticatorLen,txBatchNum,rxBatchMaxTimer,consumed_bytes_host,produced_bytes_host,consumed_bytes_network,produced_bytes_network,consumed_pkt_network,produced_pkt_network,consumed_pkt_host,produced_pkt_host,execution_cycles,consumed_pkt_network,produced_pkt_network,device_net_down,net_device_down,host_device_down,device_host_down,net_tx_cmd_error,txNetThroughput[Gbps],rxNetThroughput[Gbps],txHostThroughput[Gbps],rxHostThroughput[Gbps],rxNetPktRate[pps],txNetPktRate[pps],rxHostPktRate[pps],txHostPktRate[pps],latency";
+    std::string head_str = "exp,totalRank,localRank,pkgWordCount,payloadSize,numMsg,authenticatorLen,txBatchNum,rxBatchMaxTimer,consumed_bytes_host,produced_bytes_host,consumed_bytes_network,produced_bytes_network,consumed_pkt_network,produced_pkt_network,consumed_pkt_host,produced_pkt_host,execution_cycles,consumed_pkt_network,produced_pkt_network,device_net_down,net_device_down,host_device_down,device_host_down,net_tx_cmd_error,txNetThroughput[Gbps],rxNetThroughput[Gbps],txHostThroughput[Gbps],rxHostThroughput[Gbps],rxNetPktRate[pps],txNetPktRate[pps],rxHostPktRate[pps],txHostPktRate[pps],latency,offloadMode";
 
-	std::string value_str = exp + "," + std::to_string(options.totalRank) + "," + std::to_string(options.localRank) + "," + std::to_string(options.pkgWordCount) + "," + std::to_string(options.payloadSize) + "," + std::to_string(options.numMsg) + "," + std::to_string(options.authenticatorLen) + "," + std::to_string(options.txBatchNum) + "," + std::to_string(options.rxBatchMaxTimer) + "," + std::to_string(consumed_bytes_host) + "," + std::to_string(produced_bytes_host)+ "," + std::to_string(consumed_bytes_network) + "," + std::to_string(produced_bytes_network) + "," + std::to_string(consumed_pkt_network) + "," + std::to_string(produced_pkt_network) + "," + std::to_string(consumed_pkt_host) + "," + std::to_string(produced_pkt_host) + "," + std::to_string(execution_cycles) + "," + std::to_string(consumed_pkt_network) + "," + std::to_string(produced_pkt_network) + "," + std::to_string(device_net_down) + "," + std::to_string(net_device_down) + "," + std::to_string(host_device_down) + "," + std::to_string(device_host_down) + "," + std::to_string(net_tx_cmd_error) + "," + std::to_string(txNetThroughput) + "," + std::to_string(rxNetThroughput) + "," + std::to_string(txHostThroughput) + "," + std::to_string(rxHostThroughput) + "," + std::to_string(rxNetPktRate) + "," + std::to_string(txNetPktRate) + "," + std::to_string(rxHostPktRate) + "," + std::to_string(txHostPktRate) + "," + std::to_string(latency);
+	std::string value_str = exp + "," + std::to_string(options.totalRank) + "," + std::to_string(options.localRank) + "," + std::to_string(options.pkgWordCount) + "," + std::to_string(options.payloadSize) + "," + std::to_string(options.numMsg) + "," + std::to_string(options.authenticatorLen) + "," + std::to_string(options.txBatchNum) + "," + std::to_string(options.rxBatchMaxTimer) + "," + std::to_string(consumed_bytes_host) + "," + std::to_string(produced_bytes_host)+ "," + std::to_string(consumed_bytes_network) + "," + std::to_string(produced_bytes_network) + "," + std::to_string(consumed_pkt_network) + "," + std::to_string(produced_pkt_network) + "," + std::to_string(consumed_pkt_host) + "," + std::to_string(produced_pkt_host) + "," + std::to_string(execution_cycles) + "," + std::to_string(consumed_pkt_network) + "," + std::to_string(produced_pkt_network) + "," + std::to_string(device_net_down) + "," + std::to_string(net_device_down) + "," + std::to_string(host_device_down) + "," + std::to_string(device_host_down) + "," + std::to_string(net_tx_cmd_error) + "," + std::to_string(txNetThroughput) + "," + std::to_string(rxNetThroughput) + "," + std::to_string(txHostThroughput) + "," + std::to_string(rxHostThroughput) + "," + std::to_string(rxNetPktRate) + "," + std::to_string(txNetPktRate) + "," + std::to_string(rxHostPktRate) + "," + std::to_string(txHostPktRate) + "," + std::to_string(latency) + "," + std::to_string(options.offloadMode);
 
     std::string log_str = head_str + '\n' + value_str;
 	return log_str;
@@ -178,20 +179,14 @@ void one_to_all_test(CCLO* cclo, options_t opts)
         {
             cclo->invokeHostWriteToFPGA(opts.sendBuf, opts.sendBufSize);
         }
-        // // check completion
-        // bool transfer_complete = false;
-        // while (!transfer_complete)
-        // {
-        //     transfer_complete = true;
-        //     if(cclo->checkHostWriteToFPGACompleted() != opts.numMsg) 
-        //         transfer_complete = false;
-        // }
     }
 
-    // //Probe the done signal
+    //Probe the done signal
     // while (cclo->getCSR(1) != 1)
     // {
-    //     // do nothing
+    //     auto end = std::chrono::high_resolution_clock::now();
+    //     durationUs = (std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count() / 1000.0);
+    //     if (durationUs > 6000000) break;
     // }
     
     std::this_thread::sleep_for(6s);
@@ -237,14 +232,6 @@ void all_to_all_test(CCLO* cclo, options_t opts)
     {
         cclo->invokeHostWriteToFPGA(opts.sendBuf, opts.sendBufSize);
     }
-    // // check completion
-    // bool transfer_complete = false;
-    // while (!transfer_complete)
-    // {
-    //     transfer_complete = true;
-    //     if(cclo->checkHostWriteToFPGACompleted() != opts.numMsg) 
-    //         transfer_complete = false;
-    // }
 
     //Probe the done signal
     // while (cclo->getCSR(1) != 1)
@@ -308,6 +295,7 @@ int main(int argc, char *argv[])
                                     ("localRank,l", boost::program_options::value<uint64_t>(), "localRank")
                                     ("rxBatchMaxTimer,r", boost::program_options::value<uint64_t>(), "rxBatchMaxTimer")
                                     ("txBatchNum,b", boost::program_options::value<uint64_t>(), "number of messages in a batch in Tx")
+                                    ("offloadMode,o", boost::program_options::value<uint64_t>(), "offload mode")
                                     ("executionMode,x", boost::program_options::value<uint64_t>(), "exe Mode 0: one-to-all; exe Mode 1: all-to-all");
     
     boost::program_options::variables_map commandLineArgs;
@@ -333,7 +321,8 @@ int main(int argc, char *argv[])
     opts.masterRank = 1;
     opts.txBatchNum = 1;
     opts.rxBatchMaxTimer = 0;
-    opts.logDir = "./";
+    opts.logDir = "./log";
+    opts.offloadMode = NET_OFFLOAD;
 
     // Runtime parameters
     if(commandLineArgs.count("totalRank") > 0) opts.totalRank = commandLineArgs["totalRank"].as<uint64_t>();
@@ -345,6 +334,7 @@ int main(int argc, char *argv[])
     if(commandLineArgs.count("rxBatchMaxTimer") > 0) opts.rxBatchMaxTimer = commandLineArgs["rxBatchMaxTimer"].as<uint64_t>();
     if(commandLineArgs.count("txBatchNum") > 0) opts.txBatchNum = commandLineArgs["txBatchNum"].as<uint64_t>();
     if(commandLineArgs.count("executionMode") > 0) executionMode = commandLineArgs["executionMode"].as<uint64_t>();
+    if(commandLineArgs.count("offloadMode") > 0) opts.offloadMode = commandLineArgs["offloadMode"].as<uint64_t>();
 
     opts.masterRank = opts.totalRank-1;
 
@@ -378,10 +368,12 @@ int main(int argc, char *argv[])
         rank_vec.push_back(rank);
     }
 
+    MPI_Barrier(MPI_COMM_WORLD);
+
     cclo.init_cclo(rank_vec, opts.localRank, opts.totalRank, opts.rxBatchMaxTimer, opts.pkgWordCount);
 
     // construct bft message
-    bft_msg_hdr hdr(NET_OFFLOAD, 0, opts.localRank, 0, opts.payloadSize, 0, 0, 0, opts.totalRank);
+    bft_msg_hdr hdr(opts.offloadMode, 0, opts.localRank, 0, opts.payloadSize, 0, 0, 0, opts.totalRank);
     char* payload = reinterpret_cast<char*>(malloc(opts.payloadSize));
     memset(payload, 1, opts.payloadSize);
     BFT_MSG msg(hdr, payload);
@@ -397,29 +389,29 @@ int main(int argc, char *argv[])
     memset(message,0,opts.msgBytesR);
     msg.SerializeToArray(message);
 
-    // // create send buffer
-    // opts.sendBufSize = opts.msgBytesR * opts.txBatchNum;
-    // opts.sendBuf = reinterpret_cast<char*>(cclo.getMem(opts.sendBufSize));
-    // memset(opts.sendBuf,0,opts.sendBufSize);
-    // for (int i = 0; i< opts.txBatchNum; i++)
-    // {
-    //     memcpy(opts.sendBuf+opts.msgBytesR*i,message,opts.msgBytesR);
-    // }
+    // create send buffer
+    opts.sendBufSize = opts.msgBytesR * opts.txBatchNum;
+    opts.sendBuf = reinterpret_cast<char*>(cclo.getMem(opts.sendBufSize));
+    memset(opts.sendBuf,0,opts.sendBufSize);
+    for (int i = 0; i< opts.txBatchNum; i++)
+    {
+        memcpy(opts.sendBuf+opts.msgBytesR*i,message,opts.msgBytesR);
+    }
 
-    // std::cout<<"checkFPGAWriteToHostCompleted:"<<cclo.checkFPGAWriteToHostCompleted()<<std::endl;
+    std::cout<<"checkFPGAWriteToHostCompleted:"<<cclo.checkFPGAWriteToHostCompleted()<<std::endl;
 
-    // MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 
-    // if (executionMode == 0)
-    // {
-    //     one_to_all_test(&cclo, opts);
-    // }
-    // else if (executionMode == 1)
-    // {
-    //     all_to_all_test(&cclo, opts);
-    // } 
+    if (executionMode == 0)
+    {
+        one_to_all_test(&cclo, opts);
+    }
+    else if (executionMode == 1)
+    {
+        all_to_all_test(&cclo, opts);
+    } 
 
-    // cclo.freeMem(opts.sendBuf);
+    cclo.freeMem(opts.sendBuf);
 
 
     std::cout << "Finalizing MPI..." << std::endl;

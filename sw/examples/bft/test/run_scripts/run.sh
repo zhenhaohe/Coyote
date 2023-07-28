@@ -48,8 +48,9 @@ num_msg=$2
 tx_num_batch=$3
 rx_batch_timer=$4
 exeMode=$5
+offloadMode=$6
 
-LOG_DIR=$SCRIPT_DIR/log/t_${num_nodes}_s_${size}_m_${num_msg}_b_${tx_num_batch}_rt_${rx_batch_timer}_mode_${exeMode}/
+LOG_DIR=$SCRIPT_DIR/log/t_${num_nodes}_s_${size}_m_${num_msg}_b_${tx_num_batch}_rt_${rx_batch_timer}_offload_${offloadMode}_mode_${exeMode}/
 echo "Log Dir: $LOG_DIR"
 
 mkdir -p $LOG_DIR
@@ -65,15 +66,7 @@ done
 
 echo "FPGA IPs: $fpga_ip_list"
 
-# for x in `seq 1 $num_nodes`
-# do
-# 	host=`echo $external_ip | cut -d ',' -f$x`
-#     fpga=`echo $fpga_ip | cut -d ',' -f$x`
-#     rankId=$((x-1))    
-#     (ssh $host "$SCRIPT_DIR/../build/main -t $num_nodes -l $rankId -s $size -m $num_msg -f $fpga_ip_list -b $tx_num_batch -r $rx_batch_timer -x $exeMode -d $SCRIPT_DIR" | tee $LOG_DIR/log/t_${num_nodes}_s_${size}_m_${num_msg}_b_${tx_num_batch}_rt_${rx_batch_timer}_mode_${exeMode}/${host}_l_${rankId}.log &)
-# done
-
-mpirun -n $num_nodes -outfile-pattern "$LOG_DIR/rank_%r_stdout.log" -errfile-pattern "$LOG_DIR/rank_%r_stderr.log" -f $HOST_FILE $SCRIPT_DIR/../build/main -s $size -m $num_msg -f $fpga_ip_list -b $tx_num_batch -r $rx_batch_timer -x $exeMode -d $SCRIPT_DIR >/dev/tty
+mpirun -n $num_nodes -outfile-pattern "$LOG_DIR/rank_%r_stdout.log" -errfile-pattern "$LOG_DIR/rank_%r_stderr.log" -f $HOST_FILE $SCRIPT_DIR/../build/main -s $size -m $num_msg -f $fpga_ip_list -b $tx_num_batch -r $rx_batch_timer -x $exeMode -o $offloadMode -d "$SCRIPT_DIR/log" >/dev/tty
 
 SLEEPTIME=$(((num_nodes-1)*2 + 15))
 sleep $SLEEPTIME

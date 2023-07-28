@@ -38,26 +38,32 @@ import bftTypes::*;
  */
 module bench_role (
     // Control
-    AXI4L.s                     s_axi_ctrl,
+    input logic                 ap_start,
+    output logic                ap_done,
+    input logic [63:0]			exp_tx_net_pkt,
+	input logic [63:0]          exp_rx_net_pkt,
+    output logic [63:0]		    execution_cycles,
 
-    AXI4S.m                     netTxData,
-    metaIntf.m                  netTxMeta,
-    AXI4S.s                     netRxData,
-    metaIntf.s                  netRxMeta,
+    // Net
+    AXI4S.m                     tx_net_msg,
+    metaIntf.m                  tx_net_meta,
+    AXI4S.s                     rx_net_msg,
+    metaIntf.s                  rx_net_meta,
 
     // Host 
     AXI4S.m                     hostTxData,
     metaIntf.m                  hostTxMeta,
     AXI4SR.s                    hostRxData,
 
+    // debug reg
+    output bft_tx_stat_t        bft_tx_stat,
+    output bft_rx_stat_t        bft_rx_stat,
+
     // Clock and reset
     input  wire                 aclk,
     input  wire[0:0]            aresetn
 );
 
-
-metaIntf #(.STYPE(64)) comm_meta_s0();
-metaIntf #(.STYPE(64)) comm_meta_s1();
 
 AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) tx_msg_strm_s0();
 AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) tx_msg_strm_s1();
@@ -87,12 +93,6 @@ metaIntf #(.STYPE(bft_hdr_t)) tx_hdr_crypt_s0();
 metaIntf #(.STYPE(bft_hdr_t)) tx_hdr_crypt_s1();
 metaIntf #(.STYPE(bft_hdr_t)) tx_hdr_crypt_s2();
 
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) tx_net_msg_s0();
-metaIntf #(.STYPE(logic[64-1:0])) tx_net_meta_s0();
-
-AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) rx_net_msg_s0();
-metaIntf #(.STYPE(logic[64-1:0])) rx_net_meta_s0();
-
 AXI4S #(.AXI4S_DATA_BITS(512)) rx_payload_s0();
 AXI4S #(.AXI4S_DATA_BITS(512)) rx_payload_s1();
 AXI4S #(.AXI4S_DATA_BITS(512)) rx_payload_s2();
@@ -120,29 +120,11 @@ AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) rx_msg_strm_s0();
 AXI4S #(.AXI4S_DATA_BITS(AXI_DATA_BITS)) rx_msg_strm_s1();
 
 bft_tx_stat_t bft_tx_stat_s0;
-bft_tx_stat_t bft_tx_stat_s1;
 bft_rx_stat_t bft_rx_stat_s0;
-bft_rx_stat_t bft_rx_stat_s1;
 
-logic ap_start, ap_start_pulse, ap_done;
-
-logic [63:0] exp_tx_net_pkt, exp_rx_net_pkt, execution_cycles;
+logic ap_start_pulse;
 
 logic [63:0] tx_net_pkt, rx_net_pkt;
-
-bench_role_slave bench_role_slave(
-	.aclk(aclk),
-	.aresetn(aresetn),
-	.axi_ctrl(s_axi_ctrl),
-	.ap_start(ap_start),
-    .ap_done(ap_done),
-    .comm_meta (comm_meta_s0),
-    .bft_tx_stat(bft_tx_stat_s1),
-    .bft_rx_stat(bft_rx_stat_s1),
-    .exp_tx_net_pkt(exp_tx_net_pkt),
-	.exp_rx_net_pkt(exp_rx_net_pkt),
-    .execution_cycles(execution_cycles)
-);
 
 // convert AXI4SR to AXI4S
 assign tx_msg_strm_s0.tvalid = hostRxData.tvalid;
@@ -151,7 +133,6 @@ assign tx_msg_strm_s0.tdata = hostRxData.tdata;
 assign tx_msg_strm_s0.tkeep = hostRxData.tkeep;
 assign hostRxData.tready = tx_msg_strm_s0.tready;
 
-meta_reg_array #(.N_STAGES(2), .DATA_BITS(64)) inst_comm_meta_array (.aclk(aclk), .aresetn(aresetn), .s_meta(comm_meta_s0), .m_meta(comm_meta_s1));
 axis_reg_array #(.N_STAGES(2)) inst_tx_msg_strm_array (.aclk(aclk), .aresetn(aresetn), .s_axis(tx_msg_strm_s0), .m_axis(tx_msg_strm_s1));
 
 
@@ -199,7 +180,7 @@ bft_bcast_ip bft_bcast_inst(
 );
 
 axis_reg_array #(.N_STAGES(2)) inst_tx_payload_array (.aclk(aclk), .aresetn(aresetn), .s_axis(tx_payload_s1), .m_axis(tx_payload_s2));
-meta_reg_array #(.N_STAGES(2), .DATA_BITS($bits(bft_hdr_t))) inst_tx_hdr_array (.aclk(aclk), .aresetn(aresetn), .s_meta(tx_hdr_s1), .m_meta(tx_hdr_s2));
+meta_reg_array #(.N_STAGES(2), .DATA_BITS(512)) inst_tx_hdr_array (.aclk(aclk), .aresetn(aresetn), .s_meta(tx_hdr_s1), .m_meta(tx_hdr_s2));
 
 bft_arbiter bft_tx_arbiter(
     .s_axis(tx_payload_s2),
@@ -225,7 +206,7 @@ axis_reg_array_profiler #(.N_STAGES(2), .DATA_BITS(AXI_DATA_BITS)) inst_axis_tx_
     .ready_down(bft_tx_stat_s0.net_offload_down)
 );
 
-meta_reg_array #(.N_STAGES(2), .DATA_BITS($bits(bft_hdr_t))) inst_tx_hdr_net_array (.aclk(aclk), .aresetn(aresetn), .s_meta(tx_hdr_net_s0), .m_meta(tx_hdr_net_s1));
+meta_reg_array #(.N_STAGES(2), .DATA_BITS(512)) inst_tx_hdr_net_array (.aclk(aclk), .aresetn(aresetn), .s_meta(tx_hdr_net_s0), .m_meta(tx_hdr_net_s1));
 
 // Crypto Offload Path
 
@@ -240,7 +221,7 @@ axis_reg_array_profiler #(.N_STAGES(2), .DATA_BITS(AXI_DATA_BITS)) inst_axis_tx_
     .ready_down(bft_tx_stat_s0.auth_offload_down)
 );
 
-meta_reg_array #(.N_STAGES(2), .DATA_BITS($bits(bft_hdr_t))) inst_tx_hdr_auth_array (.aclk(aclk), .aresetn(aresetn), .s_meta(tx_hdr_crypt_s0), .m_meta(tx_hdr_crypt_s1));
+meta_reg_array #(.N_STAGES(2), .DATA_BITS(512)) inst_tx_hdr_auth_array (.aclk(aclk), .aresetn(aresetn), .s_meta(tx_hdr_crypt_s0), .m_meta(tx_hdr_crypt_s1));
 
 auth_role_wrapper #(.NUM_ENGINE(NUM_AUTH_TX), .VERIFICATION(0))
 auth_role_wrapper_tx(
@@ -291,47 +272,31 @@ bft_meta_gen_ip tx_net_meta_gen_inst (
     .s_axis_TKEEP ( tx_msg_strm_s2.tkeep ),
     .s_axis_TLAST ( tx_msg_strm_s2.tlast ),
     .s_axis_TSTRB (0),
-    .m_meta_TVALID (tx_net_meta_s0.valid),
-    .m_meta_TREADY (tx_net_meta_s0.ready),
-    .m_meta_TDATA (tx_net_meta_s0.data),
-    .m_axis_TREADY ( tx_net_msg_s0.tready ),
-    .m_axis_TVALID ( tx_net_msg_s0.tvalid ),
-    .m_axis_TDATA ( tx_net_msg_s0.tdata ),
-    .m_axis_TKEEP ( tx_net_msg_s0.tkeep ),
-    .m_axis_TLAST ( tx_net_msg_s0.tlast ),
+    .m_meta_TVALID (tx_net_meta.valid),
+    .m_meta_TREADY (tx_net_meta.ready),
+    .m_meta_TDATA (tx_net_meta.data),
+    .m_axis_TREADY ( tx_net_msg.tready ),
+    .m_axis_TVALID ( tx_net_msg.tvalid ),
+    .m_axis_TDATA ( tx_net_msg.tdata ),
+    .m_axis_TKEEP ( tx_net_msg.tkeep ),
+    .m_axis_TLAST ( tx_net_msg.tlast ),
     .ap_clk(aclk),
     .ap_rst_n(aresetn)
 );
 
 
-ccl_engine ccl_engine
-(
-    .tx_data_in(tx_net_msg_s0),
-    .tx_meta_in(tx_net_meta_s0),
-    .net_tx_data_out(netTxData),
-    .net_tx_meta_out(netTxMeta),
-    .net_rx_data_in(netRxData),
-    .net_rx_meta_in(netRxMeta),
-    .rx_data_out(rx_net_msg_s0),
-    .rx_meta_out(rx_net_meta_s0),
-    .configComm_in(comm_meta_s1),
-    .aclk(aclk),
-    .aresetn(aresetn)
-
-);
-
 // bft rx data path
 
-assign rx_net_meta_s0.ready = 1'b1;
+assign rx_net_meta.ready = 1'b1;
 
 bft_depacketizer_ip bft_rx_depacketizer (
     .ap_clk(aclk),
     .ap_rst_n(aresetn),
-    .s_axis_TREADY ( rx_net_msg_s0.tready ),
-    .s_axis_TVALID ( rx_net_msg_s0.tvalid ),
-    .s_axis_TDATA ( rx_net_msg_s0.tdata ),
-    .s_axis_TKEEP ( rx_net_msg_s0.tkeep ),
-    .s_axis_TLAST ( rx_net_msg_s0.tlast ),
+    .s_axis_TREADY ( rx_net_msg.tready ),
+    .s_axis_TVALID ( rx_net_msg.tvalid ),
+    .s_axis_TDATA ( rx_net_msg.tdata ),
+    .s_axis_TKEEP ( rx_net_msg.tkeep ),
+    .s_axis_TLAST ( rx_net_msg.tlast ),
     .s_axis_TSTRB (0),
     .m_axis_TREADY ( rx_payload_s0.tready ),
     .m_axis_TVALID ( rx_payload_s0.tvalid ),
@@ -344,7 +309,7 @@ bft_depacketizer_ip bft_rx_depacketizer (
 );
 
 axis_reg_array #(.N_STAGES(3)) inst_rx_payload_array (.aclk(aclk), .aresetn(aresetn), .s_axis(rx_payload_s0), .m_axis(rx_payload_s1));
-meta_reg_array #(.N_STAGES(3), .DATA_BITS($bits(bft_hdr_t))) inst_rx_hdr_array (.aclk(aclk), .aresetn(aresetn), .s_meta(rx_hdr_s0), .m_meta(rx_hdr_s1));
+meta_reg_array #(.N_STAGES(3), .DATA_BITS(512)) inst_rx_hdr_array (.aclk(aclk), .aresetn(aresetn), .s_meta(rx_hdr_s0), .m_meta(rx_hdr_s1));
 
 
 bft_arbiter bft_rx_arbiter(
@@ -371,7 +336,7 @@ axis_reg_array_profiler #(.N_STAGES(2), .DATA_BITS(AXI_DATA_BITS)) inst_axis_rx_
     .ready_down(bft_rx_stat_s0.net_offload_down)
 );
 
-meta_reg_array #(.N_STAGES(2), .DATA_BITS($bits(bft_hdr_t))) inst_rx_hdr_net_array (.aclk(aclk), .aresetn(aresetn), .s_meta(rx_hdr_net_s0), .m_meta(rx_hdr_net_s1));
+meta_reg_array #(.N_STAGES(2), .DATA_BITS(512)) inst_rx_hdr_net_array (.aclk(aclk), .aresetn(aresetn), .s_meta(rx_hdr_net_s0), .m_meta(rx_hdr_net_s1));
 
 // Crypto Offload Path
 
@@ -386,7 +351,7 @@ axis_reg_array_profiler #(.N_STAGES(2), .DATA_BITS(AXI_DATA_BITS)) inst_axis_rx_
     .ready_down(bft_rx_stat_s0.auth_offload_down)
 );
 
-meta_reg_array #(.N_STAGES(2), .DATA_BITS($bits(bft_hdr_t))) inst_rx_hdr_auth_array (.aclk(aclk), .aresetn(aresetn), .s_meta(rx_hdr_crypt_s0), .m_meta(rx_hdr_crypt_s1));
+meta_reg_array #(.N_STAGES(2), .DATA_BITS(512)) inst_rx_hdr_auth_array (.aclk(aclk), .aresetn(aresetn), .s_meta(rx_hdr_crypt_s0), .m_meta(rx_hdr_crypt_s1));
 
 auth_role_wrapper #(.NUM_ENGINE(NUM_AUTH_RX), .VERIFICATION(1))
 auth_role_wrapper_rx(
@@ -428,6 +393,7 @@ bft_packetizer_ip bft_rx_packetizer_inst(
     .m_axis_TLAST ( rx_msg_strm_s0.tlast )
 );
 
+
 axis_reg_array #(.N_STAGES(2)) inst_rx_msg_strm_array (.aclk(aclk), .aresetn(aresetn), .s_axis(rx_msg_strm_s0), .m_axis(rx_msg_strm_s1));
 
 bft_meta_gen_ip rx_net_meta_gen_inst (
@@ -458,7 +424,7 @@ axis_meta_register_slice_width_512 bft_tx_stat_slice_width_512(
     .s_axis_tdata ( bft_tx_stat_s0 ),
     .m_axis_tready ( 1'b1 ),
     .m_axis_tvalid (  ),
-    .m_axis_tdata ( bft_tx_stat_s1 )
+    .m_axis_tdata ( bft_tx_stat )
 );
 
 axis_meta_register_slice_width_512 bft_rx_stat_slice_width_512(
@@ -469,7 +435,7 @@ axis_meta_register_slice_width_512 bft_rx_stat_slice_width_512(
     .s_axis_tdata ( bft_rx_stat_s0 ),
     .m_axis_tready ( 1'b1 ),
     .m_axis_tvalid (  ),
-    .m_axis_tdata ( bft_rx_stat_s1 )
+    .m_axis_tdata ( bft_rx_stat )
 );
 
 
@@ -530,11 +496,11 @@ always @(posedge aclk) begin
             tx_net_pkt <= '0;
         end
 
-        if (netTxData.tvalid & netTxData.tready & netTxData.tlast) begin
+        if (tx_net_msg.tvalid & tx_net_msg.tready & tx_net_msg.tlast) begin
             tx_net_pkt <= tx_net_pkt + 1'b1;
         end
 
-        if (netRxData.tvalid & netRxData.tready & netRxData.tlast) begin
+        if (rx_net_msg.tvalid & rx_net_msg.tready & rx_net_msg.tlast) begin
             rx_net_pkt <= rx_net_pkt + 1'b1;
         end
 
