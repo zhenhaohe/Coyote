@@ -1,7 +1,7 @@
-size=(1024)
-num_msg=64000    
+size=(128)
+num_msg=128    
 num_batch=(16)
-rx_batch_timer=1
+rx_batch_timer=0
 exeMode=(0)
 offloadMode=(0)
 

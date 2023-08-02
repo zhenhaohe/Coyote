@@ -287,7 +287,7 @@ bft_meta_gen_ip tx_net_meta_gen_inst (
 
 // bft rx data path
 
-assign rx_net_meta.ready = 1'b1;
+assign rx_net_meta.ready = rx_net_msg.tready;
 
 bft_depacketizer_ip bft_rx_depacketizer (
     .ap_clk(aclk),

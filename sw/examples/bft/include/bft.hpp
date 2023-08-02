@@ -38,7 +38,7 @@ private:
     void* payload;
 
 public: 
-	
+	BFT_MSG() : hdr{}, payload(nullptr) {} 
 	BFT_MSG(bft_msg_hdr hdr, void* payload): hdr(hdr), payload(payload){};
 	~BFT_MSG(){
         delete[] reinterpret_cast<char*>(payload);

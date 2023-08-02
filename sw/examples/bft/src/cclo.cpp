@@ -218,8 +218,9 @@ rcv_meta_t CCLO::receive(void* user_buf, unsigned int user_buf_size)
             // make sure seq number matches the curr_transfer_cnt
             if (header.seq != rxHandler.curr_transfer_cnt)
             {
-                std::cerr<<"Mismatch: hardware seq: "<<header.seq<<" exp seq: "<<rxHandler.curr_transfer_cnt<<endl;
-                break;
+                // TODO: check this
+                // std::cerr<<"Mismatch: hardware seq: "<<header.seq<<" exp seq: "<<rxHandler.curr_transfer_cnt<<endl;
+                // break;
             }
 
             if ((rcv_meta.num_rcv_bytes) + header.total_bytes > user_buf_size){

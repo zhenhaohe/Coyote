@@ -49,7 +49,7 @@ private:
 
 public: 
 	
-	CCLO() : cproc(0, getpid()), Terminate(false), Verbose(false) {}
+	CCLO() : cproc(0, getpid()), Terminate(false), Verbose(true) {}
 	~CCLO(){
 		for (int i=0; i<rxHandler.buf_queue.size(); i++)
 		{

@@ -36,7 +36,7 @@ void BFT_MSG::DeserializeFromArray(void* array){
 
     if (hdr.dataLen > 0) {
         payload = new char[hdr.dataLen];
-        char* payload_ptr_char = reinterpret_cast<char*>(offset_ptr + 10);
+        char* payload_ptr_char = reinterpret_cast<char*>(offset_ptr + 16);
 
         for (uint32_t i = 0; i < hdr.dataLen; i++) {
             *(reinterpret_cast<char*>(payload) + i) = *(payload_ptr_char + i);

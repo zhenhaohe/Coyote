@@ -11,6 +11,8 @@
 #include <random>
 #include <thread>
 #include <mpi.h>
+#include <vector>
+
 
 
 //#include <x86intrin.h>
@@ -177,20 +179,21 @@ void one_to_all_test(CCLO* cclo, options_t opts)
         // transfer data
         for (int i = 0; i< opts.numMsg/opts.txBatchNum; i++)
         {
-            cclo->invokeHostWriteToFPGA(opts.sendBuf, opts.sendBufSize);
+            cclo->invokeHostWriteToFPGA(opts.sendBuf+i*opts.txBatchNum*opts.msgBytesR, opts.txBatchNum*opts.msgBytesR);
         }
     }
 
     //Probe the done signal
-    // while (cclo->getCSR(1) != 1)
-    // {
-    //     auto end = std::chrono::high_resolution_clock::now();
-    //     durationUs = (std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count() / 1000.0);
-    //     if (durationUs > 6000000) break;
-    // }
-    
-    std::this_thread::sleep_for(6s);
-    
+    while (cclo->probeDone() != true)
+    {
+        auto end = std::chrono::high_resolution_clock::now();
+        durationUs = (std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count() / 1000.0);
+        if (durationUs > 6000000){
+            std::cout<<"Probe Done Time Out"<<std::endl;
+            break;
+        } 
+    }
+        
     auto end = std::chrono::high_resolution_clock::now();
     durationUs = (std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count() / 1000.0);
     std::cout<<"Experiment finished durationUs:"<<durationUs<<std::endl;
@@ -202,11 +205,22 @@ void one_to_all_test(CCLO* cclo, options_t opts)
 
     print_log(opts.logDir, opts.localRank, format_log(cclo, "one_to_all", opts));
 
-    // // Verification
-    // if(opts.localRank != opts.masterRank)
-    // {
-    //     polling_and_deserialization(cclo, opts);
-    // }
+    // Verification
+    if(opts.localRank != opts.masterRank)
+    {
+        unsigned int user_buf_size = opts.sendBufSize*2;
+        char* user_buf = reinterpret_cast<char*>(malloc(user_buf_size));
+        rcv_meta_t rcv_meta = cclo->receive(user_buf, user_buf_size);
+        std::cout<<"num_rcv_msg:"<<rcv_meta.num_rcv_msg<<",num_rcv_bytes:"<<rcv_meta.num_rcv_bytes<<std::endl;
+        for(int i=0;i<rcv_meta.num_rcv_msg; i++)
+        {
+            BFT_MSG msg;
+            msg.DeserializeFromArray(user_buf+i*opts.msgBytesR);
+            msg.printHeader();
+            msg.printPayload();
+        }
+    }
+
 }
 
 void all_to_all_test(CCLO* cclo, options_t opts)
@@ -230,19 +244,20 @@ void all_to_all_test(CCLO* cclo, options_t opts)
     // transfer data
     for (int i = 0; i< opts.numMsg/opts.txBatchNum; i++)
     {
-        cclo->invokeHostWriteToFPGA(opts.sendBuf, opts.sendBufSize);
+        cclo->invokeHostWriteToFPGA(opts.sendBuf+i*opts.txBatchNum*opts.msgBytesR, opts.txBatchNum*opts.msgBytesR);
     }
 
     //Probe the done signal
-    // while (cclo->getCSR(1) != 1)
-    // {
-    //     auto end = std::chrono::high_resolution_clock::now();
-    //     durationUs = (std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count() / 1000.0);
-    //     if (durationUs > 6000000) break;
-    // }
+    while (cclo->probeDone() != true)
+    {
+        auto end = std::chrono::high_resolution_clock::now();
+        durationUs = (std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count() / 1000.0);
+        if (durationUs > 6000000){
+            std::cout<<"Probe Done Time Out"<<std::endl;
+            break;
+        } 
+    }
     
-    std::this_thread::sleep_for(6s);
-
     auto end = std::chrono::high_resolution_clock::now();
     durationUs = (std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count() / 1000.0);
     std::cout<<"Experiment finished durationUs:"<<durationUs<<std::endl;
@@ -254,7 +269,18 @@ void all_to_all_test(CCLO* cclo, options_t opts)
 
     print_log(opts.logDir, opts.localRank, format_log(cclo, "all_to_all", opts));
 
-    // polling_and_deserialization(cclo, opts);
+    // verification
+    // unsigned int user_buf_size = opts.sendBufSize;
+    // char* user_buf = reinterpret_cast<char*>(malloc(user_buf_size));
+    // rcv_meta_t rcv_meta = cclo->receive(user_buf, user_buf_size);
+    // std::cout<<"num_rcv_msg:"<<rcv_meta.num_rcv_msg<<",num_rcv_bytes:"<<rcv_meta.num_rcv_bytes<<std::endl;
+    // for(int i=0;i<rcv_meta.num_rcv_msg; i++)
+    // {
+    //     BFT_MSG msg;
+    //     msg.DeserializeFromArray(user_buf+i*opts.msgBytesR);
+    //     msg.printHeader();
+    //     msg.printPayload();
+    // }
 }
 
 int main(int argc, char *argv[])  
@@ -372,32 +398,32 @@ int main(int argc, char *argv[])
 
     cclo.init_cclo(rank_vec, opts.localRank, opts.totalRank, opts.rxBatchMaxTimer, opts.pkgWordCount);
 
-    // construct bft message
-    bft_msg_hdr hdr(opts.offloadMode, 0, opts.localRank, 0, opts.payloadSize, 0, 0, 0, opts.totalRank);
-    char* payload = reinterpret_cast<char*>(malloc(opts.payloadSize));
-    memset(payload, 1, opts.payloadSize);
-    BFT_MSG msg(hdr, payload);
-
-    msg.printHeader();
-    msg.printPayload();
-
-    // serialize the bft message
-    opts.msgBytes = msg.ByteSize();
+    // create send buffer
+    opts.msgBytes = opts.payloadSize + 64;
     opts.msgBytesR = (opts.msgBytes + 63)/64*64;
     cout<<"msgBytes:"<<dec<<opts.msgBytes<<" msgBytesR:"<<opts.msgBytesR<<endl;
-    char * message = reinterpret_cast<char*>(malloc(opts.msgBytesR));
-    memset(message,0,opts.msgBytesR);
-    msg.SerializeToArray(message);
-
-    // create send buffer
-    opts.sendBufSize = opts.msgBytesR * opts.txBatchNum;
+    opts.sendBufSize = opts.msgBytesR * opts.numMsg;
     opts.sendBuf = reinterpret_cast<char*>(cclo.getMem(opts.sendBufSize));
     memset(opts.sendBuf,0,opts.sendBufSize);
-    for (int i = 0; i< opts.txBatchNum; i++)
-    {
-        memcpy(opts.sendBuf+opts.msgBytesR*i,message,opts.msgBytesR);
-    }
 
+    for(int n=0; n<opts.numMsg; n++)
+    {
+        // construct bft message
+        bft_msg_hdr hdr(opts.offloadMode, 0, opts.localRank, 0, opts.payloadSize, n, 0, 0, opts.totalRank);
+        char* payload = reinterpret_cast<char*>(malloc(opts.payloadSize));
+        memset(payload, n, opts.payloadSize);
+        BFT_MSG msg(hdr, payload);
+        // msg.printHeader();
+        // msg.printPayload();
+        
+        // serialize the bft message
+        char * message = reinterpret_cast<char*>(malloc(opts.msgBytesR));
+        memset(message,0,opts.msgBytesR);
+        msg.SerializeToArray(message);
+
+        memcpy(opts.sendBuf+opts.msgBytesR*n,message,opts.msgBytesR);
+    }
+    
     std::cout<<"checkFPGAWriteToHostCompleted:"<<cclo.checkFPGAWriteToHostCompleted()<<std::endl;
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -412,7 +438,6 @@ int main(int argc, char *argv[])
     } 
 
     cclo.freeMem(opts.sendBuf);
-
 
     std::cout << "Finalizing MPI..." << std::endl;
 	MPI_Finalize();

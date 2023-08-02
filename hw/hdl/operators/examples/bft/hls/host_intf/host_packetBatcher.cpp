@@ -137,7 +137,7 @@ void tx_cmd_handler(
                 for (int i = 0; i < MAX_PACKET_BATCH; i++)
                 {
                     #pragma HLS UNROLL
-                    headerWord(64+i*32+31, 64+i*32) = lengthVec[i];
+                    headerWord(64+i*16+15, 64+i*16) = lengthVec[i];
                     lengthVec[i] = 0;
                 }
                 headerInternal.write(headerWord);
