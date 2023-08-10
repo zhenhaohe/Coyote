@@ -20,15 +20,17 @@ struct bft_msg_hdr
     uint32_t msgType;
     uint32_t epochID;
     uint32_t totalRank;
-    // clientID
-    // timestamp
+    uint32_t clientID;
+    uint32_t timestamp;
 
     // Constructor
     bft_msg_hdr(uint32_t cmdID = 0, uint32_t dst = 0, uint32_t src = 0,
                 uint32_t tag = 0, uint32_t dataLen = 0, uint32_t msgID = 0, uint32_t msgType = 0,
-                uint32_t epochID = 0, uint32_t totalRank = 0)
+                uint32_t epochID = 0, uint32_t totalRank = 0, uint32_t clientID = 0,
+                uint32_t timestamp = 0)
         : cmdID(cmdID), cmdLen(CMD_LEN), dst(dst), src(src), tag(tag), dataLen(dataLen),
-          msgID(msgID), msgType(msgType), epochID(epochID), totalRank(totalRank)
+          msgID(msgID), msgType(msgType), epochID(epochID), totalRank(totalRank),
+          clientID(clientID), timestamp(timestamp)
     {}
 };
 
