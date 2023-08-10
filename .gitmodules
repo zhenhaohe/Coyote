@@ -1,0 +1,4 @@
+[submodule "sw/examples/bft/obft"]
+	path = sw/examples/bft/obft
+	url = git@gitlab.inf.ethz.ch:zhe/bft-master-thesis.git
+	branch = coyote_integration
