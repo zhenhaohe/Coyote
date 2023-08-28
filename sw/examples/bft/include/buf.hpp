@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-#define TIMEOUT_MS 100
+#define TIMEOUT_US 10
 #define BUF_HDR_SIZE 64
 #define NUM_RX_BUF 2
 #define RX_BUF_SIZE 33554432

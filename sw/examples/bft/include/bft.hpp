@@ -32,6 +32,20 @@ struct bft_msg_hdr
           msgID(msgID), msgType(msgType), epochID(epochID), totalRank(totalRank),
           clientID(clientID), timestamp(timestamp)
     {}
+
+    void printHeader() const {
+        std::cout << "Header information: ";
+        std::cout << "cmdID=" << cmdID << ", ";
+        std::cout << "cmdLen=" << cmdLen << ", ";
+        std::cout << "dst=" << dst << ", ";
+        std::cout << "src=" << src << ", ";
+        std::cout << "tag=" << tag << ", ";
+        std::cout << "dataLen=" << dataLen << ", ";
+        std::cout << "msgID=" << msgID << ", ";
+        std::cout << "msgType=" << msgType << ", ";
+        std::cout << "epochID=" << epochID << ", ";
+        std::cout << "totalRank=" << totalRank << std::endl;
+    }
 };
 
 class BFT_MSG {
@@ -78,17 +92,7 @@ public:
     void SerializeToArray(void* array);
 
     void printHeader() const {
-        std::cout << "Header information: ";
-        std::cout << "cmdID=" << hdr.cmdID << ", ";
-        std::cout << "cmdLen=" << hdr.cmdLen << ", ";
-        std::cout << "dst=" << hdr.dst << ", ";
-        std::cout << "src=" << hdr.src << ", ";
-        std::cout << "tag=" << hdr.tag << ", ";
-        std::cout << "dataLen=" << hdr.dataLen << ", ";
-        std::cout << "msgID=" << hdr.msgID << ", ";
-        std::cout << "msgType=" << hdr.msgType << ", ";
-        std::cout << "epochID=" << hdr.epochID << ", ";
-        std::cout << "totalRank=" << hdr.totalRank << std::endl;
+        hdr.printHeader();
     }
 
     void printPayload() const {

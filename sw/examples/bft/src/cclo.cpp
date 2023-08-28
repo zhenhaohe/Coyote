@@ -32,6 +32,13 @@ void CCLO::init_cclo(std::vector<comm_rank> rank_vec, unsigned int local_rank, u
     comm.localRank = local_rank;
     comm.rank_vec = rank_vec;
 
+    // arp lookup
+    for(int i=0; i<total_rank; i++){
+        if(local_rank != i){
+            cproc.doArpLookup(rank_vec[i].ip);
+        }
+    }
+
     //open port 
     for (int i=0; i<total_rank; i++)
     {
@@ -39,7 +46,7 @@ void CCLO::init_cclo(std::vector<comm_rank> rank_vec, unsigned int local_rank, u
         open_port(dstPort);
     }
 
-    std::this_thread::sleep_for(1s);
+    std::this_thread::sleep_for(10ms);
 
     //open con
     for (int i=0; i<total_rank; i++)
@@ -54,9 +61,8 @@ void CCLO::init_cclo(std::vector<comm_rank> rank_vec, unsigned int local_rank, u
         }
     }
 
-    std::this_thread::sleep_for(1s);
-
     // offload communicator
+    std::cout<<"Offloading communicator..."<<std::endl;
     offload_communicator();
 
     // // create send buf
@@ -68,6 +74,8 @@ void CCLO::init_cclo(std::vector<comm_rank> rank_vec, unsigned int local_rank, u
     for (int i=0; i<NUM_RX_BUF; i++){
         create_recvBuf(RX_BUF_SIZE);
     }
+
+    std::cout<<"CCLO init done."<<std::endl;
 
 }
 
@@ -173,7 +181,7 @@ rcv_meta_t CCLO::receive(void* user_buf, unsigned int user_buf_size)
 
     char* rx_buf_head = reinterpret_cast<char*>(rxHandler.curr_buf().getHeadPointer());
 
-    double durationMs = 0.0;
+    double durationUs = 0.0;
     
     //check new transfer
     rcv_meta.new_transfer = false;
@@ -188,8 +196,8 @@ rcv_meta_t CCLO::receive(void* user_buf, unsigned int user_buf_size)
             nanosleep((const struct timespec[]){{0, 10L}}, NULL);
         }
         auto end = std::chrono::high_resolution_clock::now();
-        durationMs = (std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count() / 1000.0);
-        if (durationMs > TIMEOUT_MS && rcv_meta.new_transfer == false)
+        durationUs = (std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count() / 1000.0);
+        if (durationUs > TIMEOUT_US && rcv_meta.new_transfer == false)
         {
             return rcv_meta;
         }

@@ -16,15 +16,15 @@
 
 # read server ids from user
 echo "Enter u55c machine ids (space separated):"
-read -a SERVID
-# SERVID=(9 10)
+read -a U55C_SERVERID
+# U55C_SERVERID=(9 10)
 
 HOST_FILE=./host
 FPGA_FILE=./fpga
 rm -f $HOST_FILE $FPGA_FILE
 
 num_nodes=0
-for ID in ${SERVID[@]}; do
+for ID in ${U55C_SERVERID[@]}; do
 	external_ip+="10.1.212.$((ID + 170)),"
     fpga_ip+="10.253.74.$(((ID-1) * 4 + 68)),"
     num_nodes=$((num_nodes+1))
