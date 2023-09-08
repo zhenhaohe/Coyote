@@ -20,6 +20,8 @@ package bftTypes;
     parameter integer NUM_AUTH_RX = 2;
 
     typedef struct packed {
+        logic [31:0] timestamp;
+        logic [31:0] clientID;
         logic [31:0] totalRank;
         logic [31:0] epochID;
         logic [31:0] msgType;

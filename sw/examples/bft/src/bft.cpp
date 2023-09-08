@@ -33,6 +33,8 @@ void BFT_MSG::DeserializeFromArray(void* array){
     hdr.msgType = offset_ptr[7];
     hdr.epochID = offset_ptr[8];
     hdr.totalRank = offset_ptr[9];
+    hdr.clientID = offset_ptr[10];
+    hdr.timestamp = offset_ptr[11];
 
     if (hdr.dataLen > 0) {
         payload = new char[hdr.dataLen];
@@ -58,8 +60,8 @@ void BFT_MSG::SerializeToArray(void* array){
     *(offset_ptr+7) = hdr.msgType;
     *(offset_ptr+8) = hdr.epochID;
     *(offset_ptr+9) = hdr.totalRank;
-    *(offset_ptr+10) = 0;
-    *(offset_ptr+11) = 0;
+    *(offset_ptr+10) = hdr.clientID;
+    *(offset_ptr+11) = hdr.timestamp;
     *(offset_ptr+12) = 0;
     *(offset_ptr+13) = 0;
     *(offset_ptr+14) = 0;

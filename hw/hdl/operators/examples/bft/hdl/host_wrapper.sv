@@ -273,7 +273,10 @@ ila_host host_debug (
 	.probe18(device2host_reg.tready),
 	.probe19(host2device.tvalid),
 	.probe20(host2device.tready),
-	.probe21(host2device.tdata) //512
+	.probe21(host2device.tdata), //512
+	.probe22(axis_host_0_src.tvalid),
+	.probe23(axis_host_0_src.tready),
+	.probe24(axis_host_0_src.tdata) // 512
 );
 `endif 
 

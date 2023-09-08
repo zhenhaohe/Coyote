@@ -44,7 +44,9 @@ struct bft_msg_hdr
         std::cout << "msgID=" << msgID << ", ";
         std::cout << "msgType=" << msgType << ", ";
         std::cout << "epochID=" << epochID << ", ";
-        std::cout << "totalRank=" << totalRank << std::endl;
+        std::cout << "totalRank=" << totalRank << ", ";
+        std::cout << "clientID=" << clientID << ", ";
+        std::cout << "timestamp=" << timestamp << std::endl;
     }
 };
 
@@ -71,6 +73,8 @@ public:
     uint32_t getMsgType() const { return hdr.msgType; }
     uint32_t getEpochID() const { return hdr.epochID; }
     uint32_t getTotalRank() const { return hdr.totalRank; }
+    uint32_t getClientID() const { return hdr.clientID; }
+    uint32_t getTimestamp() const { return hdr.timestamp; }
 
     // Setter methods for hdr fields
     void setCmdID(uint32_t value) { hdr.cmdID = value; }
@@ -83,6 +87,8 @@ public:
     void setMsgType(uint32_t value) { hdr.msgType = value; }
     void setEpochID(uint32_t value) { hdr.epochID = value; }
     void setTotalRank(uint32_t value) { hdr.totalRank = value; }
+    void setClientID(uint32_t value) { hdr.clientID = value; }
+    void setTimestamp(uint32_t value) { hdr.timestamp = value; }
 
     // Getter and setter method for payload
     void* getPayload() const { return payload; }

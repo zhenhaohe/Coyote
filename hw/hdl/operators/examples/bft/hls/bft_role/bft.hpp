@@ -54,7 +54,11 @@ typedef ap_axiu<DWIDTH8, 0, 0, 0> pkt8;
 #define HEADER_TYPE_EPOCHID_END         HEADER_TYPE_EPOCHID_START + 31
 #define HEADER_TYPE_TOTALRANK_START     HEADER_TYPE_EPOCHID_END + 1
 #define HEADER_TYPE_TOTALRANK_END       HEADER_TYPE_TOTALRANK_START + 31
-#define HEADER_LENGTH                   HEADER_TYPE_TOTALRANK_END+1
+#define HEADER_TYPE_CLIENTID_START      HEADER_TYPE_TOTALRANK_END + 1
+#define HEADER_TYPE_CLIENTID_END        HEADER_TYPE_CLIENTID_START + 31
+#define HEADER_TYPE_TIMESTAMP_START     HEADER_TYPE_CLIENTID_END + 1
+#define HEADER_TYPE_TIMESTAMP_END       HEADER_TYPE_TIMESTAMP_START + 31
+#define HEADER_LENGTH                   HEADER_TYPE_TIMESTAMP_END + 1
 
 struct headerType {
     ap_uint<32> cmdID;
@@ -67,10 +71,13 @@ struct headerType {
     ap_uint<32> msgType;
     ap_uint<32> epochID;
     ap_uint<32> totalRank;
+    ap_uint<32> clientID;
+    ap_uint<32> timestamp;
 
     headerType()
         : cmdID(0), cmdLen(0), dst(0), src(0), tag(0),
-          dataLen(0), msgID(0), msgType(0), epochID(0), totalRank(0) {}
+          dataLen(0), msgID(0), msgType(0), epochID(0), totalRank(0),
+          clientID(0), timestamp(0) {}
 
     headerType(ap_uint<HEADER_LENGTH> in)
         : cmdID(in(HEADER_TYPE_CMDID_END, HEADER_TYPE_CMDID_START)),
@@ -82,7 +89,9 @@ struct headerType {
           msgID(in(HEADER_TYPE_MSGID_END, HEADER_TYPE_MSGID_START)),
           msgType(in(HEADER_TYPE_MSGTYPE_END, HEADER_TYPE_MSGTYPE_START)),
           epochID(in(HEADER_TYPE_EPOCHID_END, HEADER_TYPE_EPOCHID_START)),
-          totalRank(in(HEADER_TYPE_TOTALRANK_END, HEADER_TYPE_TOTALRANK_START)) {}
+          totalRank(in(HEADER_TYPE_TOTALRANK_END, HEADER_TYPE_TOTALRANK_START)),
+          clientID(in(HEADER_TYPE_CLIENTID_END, HEADER_TYPE_CLIENTID_START)),
+          timestamp(in(HEADER_TYPE_TIMESTAMP_END, HEADER_TYPE_TIMESTAMP_START)) {}
 
     operator ap_uint<HEADER_LENGTH>() {
         ap_uint<HEADER_LENGTH> ret;
@@ -96,6 +105,8 @@ struct headerType {
         ret(HEADER_TYPE_MSGTYPE_END, HEADER_TYPE_MSGTYPE_START) = msgType;
         ret(HEADER_TYPE_EPOCHID_END, HEADER_TYPE_EPOCHID_START) = epochID;
         ret(HEADER_TYPE_TOTALRANK_END, HEADER_TYPE_TOTALRANK_START) = totalRank;
+        ret(HEADER_TYPE_CLIENTID_END, HEADER_TYPE_CLIENTID_START) = clientID;
+        ret(HEADER_TYPE_TIMESTAMP_END, HEADER_TYPE_TIMESTAMP_START) = timestamp;
         return ret;
     }
 
@@ -110,8 +121,11 @@ struct headerType {
                   << ", msgID: " << msgID
                   << ", msgType: " << msgType
                   << ", epochID: " << epochID
-                  << ", totalRank: " << totalRank << std::endl;
+                  << ", totalRank: " << totalRank
+                  << ", clientID: " << clientID
+                  << ", timestamp: " << timestamp << std::endl;
     #endif
     }
 };
+
 
