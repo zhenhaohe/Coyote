@@ -85,6 +85,7 @@ if [ $HOT_RESET -eq 1 ]; then
 	echo "Driver loaded."
 	echo "Getting permissions for fpga..."
 	parallel-ssh -H "$hostlist" -x '-tt' "sudo /opt/cli/program/fpga_chmod 0"
+	parallel-ssh -H "$hostlist" -x '-tt' "sudo /opt/cli/program/fpga_chmod 0"
 	echo "Done."
 fi
 
