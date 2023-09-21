@@ -2,13 +2,15 @@
 
 # parameters
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-FPGA_BIT_PATH=$SCRIPT_DIR/../../../../hw/build_new/lynx/lynx.runs/impl_1/cyt_top
+FPGA_BIT_PATH=$SCRIPT_DIR/../../../../hw/build_new/bitstreams/cyt_top
 DRIVER_PATH=$SCRIPT_DIR/../../../../driver/
 
 
 # server IDs (u55c)
-SERVID=(1 2 3 4 5 6 7 8 9 10)
-
+# SERVID=(1 2 3 4 5 6 7 8 9 10)
+# read server ids from user
+echo "Enter u55c machine ids (space separated):"
+read -a SERVID
 
 # args
 PROGRAM_FPGA=$1
