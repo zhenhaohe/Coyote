@@ -73,7 +73,7 @@ if [ $HOT_RESET -eq 1 ]; then
 	parallel-ssh -H "$hostlist" -x '-tt' "sudo rmmod coyote_drv"
 	echo "Hot resetting PCIe..."	
 	
-	parallel-ssh -H "$hostlist" -x '-tt' 'upstream_port=$(/opt/cli/get/get_fpga_device_param 1 upstream_port) && root_port=$(/opt/cli/get/get_fpga_device_param 1 root_port) && LinkCtl=$(/opt/cli/get/get_fpga_device_param 1 LinkCtl) && sudo /opt/cli/program/pci_hot_plug 1 $upstream_port $root_port $LinkCtl'
+	parallel-ssh -H "$hostlist" -x '-tt' 'upstream_port=$(/opt/sgrt/cli/get/get_fpga_device_param 1 upstream_port) && root_port=$(/opt/sgrt/cli/get/get_fpga_device_param 1 root_port) && LinkCtl=$(/opt/sgrt/cli/get/get_fpga_device_param 1 LinkCtl) && sudo /opt/sgrt/cli/program/pci_hot_plug 1 $upstream_port $root_port $LinkCtl'
 	# read -p "Hot-reset done. Press enter to load the driver or Ctrl-C to exit."
 	echo "Hot-reset done."
 	echo "Loading driver..."
@@ -82,10 +82,11 @@ if [ $HOT_RESET -eq 1 ]; then
 		host="alveo-u55c-$(printf "%02d" $servid)"
 		ssh -q -tt $host "sudo insmod $DRIVER_PATH/coyote_drv.ko ip_addr_q0=${IPADDR[boardidx]} mac_addr_q0=${MACADDR[boardidx]}" &
 	done
+	wait
 	echo "Driver loaded."
 	echo "Getting permissions for fpga..."
-	parallel-ssh -H "$hostlist" -x '-tt' "sudo /opt/cli/program/fpga_chmod 0"
-	parallel-ssh -H "$hostlist" -x '-tt' "sudo /opt/cli/program/fpga_chmod 0"
+	parallel-ssh -H "$hostlist" -x '-tt' "sudo /opt/sgrt/cli/program/fpga_chmod 0"
+	parallel-ssh -H "$hostlist" -x '-tt' "sudo /opt/sgrt/cli/program/fpga_chmod 0"
 	echo "Done."
 fi
 
