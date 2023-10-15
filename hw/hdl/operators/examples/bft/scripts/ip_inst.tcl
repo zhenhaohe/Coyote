@@ -22,7 +22,7 @@ set_property -dict [list CONFIG.C_PROBE24_WIDTH {32} CONFIG.C_PROBE23_WIDTH {32}
 update_compile_order -fileset sources_1
 
 create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_host
-set_property -dict [list CONFIG.C_PROBE21_WIDTH {512} CONFIG.C_PROBE12_WIDTH {64} CONFIG.C_PROBE11_WIDTH {64} CONFIG.C_PROBE9_WIDTH {6} CONFIG.C_PROBE8_WIDTH {4} CONFIG.C_PROBE3_WIDTH {28} CONFIG.C_PROBE2_WIDTH {48} CONFIG.C_NUM_OF_PROBES {22} CONFIG.Component_Name {ila_host} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_host]
+set_property -dict [list CONFIG.C_PROBE24_WIDTH {512} CONFIG.C_PROBE21_WIDTH {512} CONFIG.C_PROBE12_WIDTH {64} CONFIG.C_PROBE11_WIDTH {64} CONFIG.C_PROBE9_WIDTH {6} CONFIG.C_PROBE8_WIDTH {4} CONFIG.C_PROBE3_WIDTH {28} CONFIG.C_PROBE2_WIDTH {48} CONFIG.C_NUM_OF_PROBES {25} CONFIG.Component_Name {ila_host} CONFIG.C_INPUT_PIPE_STAGES {1}] [get_ips ila_host]
 update_compile_order -fileset sources_1
 
 

@@ -65,11 +65,6 @@ void CCLO::init_cclo(std::vector<comm_rank> rank_vec, unsigned int local_rank, u
     std::cout<<"Offloading communicator..."<<std::endl;
     offload_communicator();
 
-    // // create send buf
-    // for (int i=0; i<num_tx_buf; i++){
-    //     create_sendBuf(tx_buf_size);
-    // }
-
     // create receive buf
     for (int i=0; i<NUM_RX_BUF; i++){
         create_recvBuf(RX_BUF_SIZE);
@@ -179,8 +174,6 @@ rcv_meta_t CCLO::receive(void* user_buf, unsigned int user_buf_size)
     
     uint32_t checkComplete;
 
-    char* rx_buf_head = reinterpret_cast<char*>(rxHandler.curr_buf().getHeadPointer());
-
     double durationUs = 0.0;
     
     //check new transfer
@@ -209,14 +202,14 @@ rcv_meta_t CCLO::receive(void* user_buf, unsigned int user_buf_size)
 
         if (Verbose)
         {
-            printf("Check complete:%d at bytes_offset:%d, curr_transfer_cnt:%d, new_transfer:%d, numTransfer:%d\n", checkComplete, rxHandler.curr_buf().tail_offset, rxHandler.curr_transfer_cnt, rcv_meta.new_transfer, numTransfer);
+            printf("Check complete:%d at bytes_offset:%d, curr_transfer_cnt:%d, new_transfer:%d, numTransfer:%d\n", checkComplete, rxHandler.curr_buf().head_offset, rxHandler.curr_transfer_cnt, rcv_meta.new_transfer, numTransfer);
             fflush(stdout);
         }
 
         for (size_t j = 0; j < numTransfer; j++) {
             // parse host intf batch header
             bufBatchHdr header;
-            header.deserialize(rx_buf_head);
+            header.deserialize(reinterpret_cast<char*>(rxHandler.curr_buf().getHeadPointer()));
 
             if (Verbose)
             {
@@ -226,13 +219,12 @@ rcv_meta_t CCLO::receive(void* user_buf, unsigned int user_buf_size)
             // make sure seq number matches the curr_transfer_cnt
             if (header.seq != rxHandler.curr_transfer_cnt)
             {
-                // TODO: check this
-                // std::cerr<<"Mismatch: hardware seq: "<<header.seq<<" exp seq: "<<rxHandler.curr_transfer_cnt<<endl;
-                // break;
+                std::cerr<<"Mismatch: hardware seq: "<<header.seq<<" exp seq: "<<rxHandler.curr_transfer_cnt<<endl;
+                break;
             }
 
             if ((rcv_meta.num_rcv_bytes) + header.total_bytes > user_buf_size){
-                std::cerr<<"User buff full"<<endl;
+                std::cerr<<"User buff full! user_buf_size:"<<user_buf_size<<" , recvd bytes:"<<(rcv_meta.num_rcv_bytes) + header.total_bytes<<endl;
                 break;
             }
 

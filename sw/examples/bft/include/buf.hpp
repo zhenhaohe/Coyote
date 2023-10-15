@@ -75,16 +75,3 @@ struct rxHandler_t {
         return buf_queue.front();
     }
 };
-
-// struct txHandler_t {
-//     unsigned int curr_transfer_cnt;
-//     std::queue<buf_t> buf_queue;
-
-//     // Constructor
-//     txHandler_t() : curr_transfer_cnt(0) {}
-
-//     // Getter function to retrieve a reference to the first buf
-//     buf_t & curr_buf() {
-//         return buf_queue.front();
-//     }
-// };
