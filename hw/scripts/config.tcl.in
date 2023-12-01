@@ -93,3 +93,5 @@ set cfg(n_strm_axi)     ${N_STRM_AXI}
 set cfg(mult_regions)   ${MULT_REGIONS}
 set cfg(mult_ddr_chan)  ${MULT_DDR_CHAN}
 set cfg(mult_strm_axi)  ${MULT_STRM_AXI}
+set cfg(hbm_bpss)       ${HBM_BPSS}
+set cfg(en_mem_bpss)    ${EN_MEM_BPSS}

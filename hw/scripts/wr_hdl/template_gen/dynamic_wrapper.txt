@@ -27,6 +27,11 @@ module design_dynamic_wrapper #(
     AXI4.m									m_axi_ddr [1+N_REGIONS*N_CARD_AXI],
     
 {% endif %}
+{% if cnfg.en_mem_bpss %}
+    // AXI4 DDR 
+    AXI4.m									m_axi_ddr [N_REGIONS*N_CARD_AXI],
+    
+{% endif %}
 {% if cnfg.en_strm %}
     // AXI4S host
     dmaIntf.m                               m_host_dma_rd_req,
@@ -1320,6 +1325,15 @@ module design_dynamic_wrapper #(
 {% endif %}
 
     for(genvar i = 0; i < N_REGIONS; i++) begin
+{% if cnfg.en_uclk %}
+        axil_reg_array #(.N_STAGES(N_REG_DYN_HOST_S0)) (.aclk(uclk), .aresetn(uresetn), .s_axi(axi_ctrl_user_s0[i]), .m_axi(axi_ctrl_user_s1[i]));
+{% if cnfg.en_bpss %}
+        meta_reg_array #(.DATA_BITS($bits(req_t)), .N_STAGES(N_REG_DYN_HOST_S1)) (.aclk(uclk), .aresetn(uresetn), .s_meta(bpss_rd_req_s1[i]), .m_meta(bpss_rd_req_s0[i]));
+        meta_reg_array #(.DATA_BITS($bits(req_t)), .N_STAGES(N_REG_DYN_HOST_S1)) (.aclk(uclk), .aresetn(uresetn), .s_meta(bpss_wr_req_s1[i]), .m_meta(bpss_wr_req_s0[i]));
+        meta_reg_array #(.DATA_BITS(PID_BITS), .N_STAGES(N_REG_DYN_HOST_S1)) (.aclk(uclk), .aresetn(uresetn), .s_meta(bpss_rd_done_s0[i]), .m_meta(bpss_rd_done_s1[i]));
+        meta_reg_array #(.DATA_BITS(PID_BITS), .N_STAGES(N_REG_DYN_HOST_S1)) (.aclk(uclk), .aresetn(uresetn), .s_meta(bpss_wr_done_s0[i]), .m_meta(bpss_wr_done_s1[i]));
+{% endif %} 
+{% else %}
         axil_reg_array #(.N_STAGES(N_REG_DYN_HOST_S0)) (.aclk(aclk), .aresetn(aresetn), .s_axi(axi_ctrl_user_s0[i]), .m_axi(axi_ctrl_user_s1[i]));
 {% if cnfg.en_bpss %}
         meta_reg_array #(.DATA_BITS($bits(req_t)), .N_STAGES(N_REG_DYN_HOST_S1)) (.aclk(aclk), .aresetn(aresetn), .s_meta(bpss_rd_req_s1[i]), .m_meta(bpss_rd_req_s0[i]));
@@ -1327,6 +1341,8 @@ module design_dynamic_wrapper #(
         meta_reg_array #(.DATA_BITS($bits(dma_rsp_t)), .N_STAGES(N_REG_DYN_HOST_S1)) (.aclk(aclk), .aresetn(aresetn), .s_meta(bpss_rd_done_s0[i]), .m_meta(bpss_rd_done_s1[i]));
         meta_reg_array #(.DATA_BITS($bits(dma_rsp_t)), .N_STAGES(N_REG_DYN_HOST_S1)) (.aclk(aclk), .aresetn(aresetn), .s_meta(bpss_wr_done_s0[i]), .m_meta(bpss_wr_done_s1[i]));
 {% endif %}	
+{% endif %} 
+
 
 {% if cnfg.mult_strm_axi %}
         meta_reg_array #(.DATA_BITS(LEN_BITS+DEST_BITS), .N_STAGES(N_REG_DYN_HOST_S1)) (.aclk(aclk), .aresetn(aresetn), .s_meta(m_rd_user_mux_s0[i]), .m_meta(m_rd_user_mux_s1[i]));
@@ -1561,6 +1577,49 @@ module design_dynamic_wrapper #(
         .axis_card_{{j}}_src_tvalid   (axis_card_out_ul[{{i}}*N_CARD_AXI+{{j}}].tvalid),
     {% endfor %}
 {% endif %}
+{% if cnfg.en_mem_bpss %}
+    {% for j in range(0, cnfg.n_card_axi) %}
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_araddr(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].araddr),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_arburst(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].arburst),
+        //.axi_mem_{{ i*cnfg.n_card_axi+j }}_arcache(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].arcache),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_arid(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].arid),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_arlen(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].arlen),
+        //.axi_mem_{{ i*cnfg.n_card_axi+j }}_arlock(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].arlock),
+        //.axi_mem_{{ i*cnfg.n_card_axi+j }}_arprot(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].arprot),
+        //.axi_mem_{{ i*cnfg.n_card_axi+j }}_arqos(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].arqos),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_arready(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].arready),
+        //.axi_mem_{{ i*cnfg.n_card_axi+j }}_arregion(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].arregion),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_arsize(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].arsize),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_arvalid(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].arvalid),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_awaddr(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].awaddr),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_awburst(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].awburst),
+        //.axi_mem_{{ i*cnfg.n_card_axi+j }}_awcache(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].awcache),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_awid(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].awid),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_awlen(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].awlen),
+        //.axi_mem_{{ i*cnfg.n_card_axi+j }}_awlock(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].awlock),
+        //.axi_mem_{{ i*cnfg.n_card_axi+j }}_awprot(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].awprot),
+        //.axi_mem_{{ i*cnfg.n_card_axi+j }}_awqos(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].awqos),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_awready(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].awready),
+        //.axi_mem_{{ i*cnfg.n_card_axi+j }}_awregion(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].awregion),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_awsize(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].awsize),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_awvalid(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].awvalid),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_bid(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].bid),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_bready(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].bready),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_bresp(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].bresp),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_bvalid(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].bvalid),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_rdata(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].rdata),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_rid(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].rid),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_rlast(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].rlast),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_rready(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].rready),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_rresp(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].rresp),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_rvalid(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].rvalid),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_wdata(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].wdata),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_wlast(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].wlast),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_wready(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].wready),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_wstrb(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].wstrb),
+        .axi_mem_{{ i*cnfg.n_card_axi+j }}_wvalid(m_axi_ddr[{{ i*cnfg.n_card_axi+j }}].wvalid),
+    {% endfor %}
+{% endif %}
 {% if cnfg.en_rdma_0 %}
     {% if cnfg.en_rpc %}
         .rdma_0_sq_valid	    (rdma_0_sq_user_ul[{{ i }}].valid),
@@ -1675,13 +1734,7 @@ module design_dynamic_wrapper #(
         .axis_tcp_1_src_tready    (axis_tcp_1_out_ul[{{ i }}].tready),
         .axis_tcp_1_src_tvalid    (axis_tcp_1_out_ul[{{ i }}].tvalid),
 {% endif %}
-{% if cnfg.en_uclk %}
-        .aclk                   (uclk),
-        .aresetn                (uresetn),
-{% else %}
-        .aclk                   (aclk),
-        .aresetn                (aresetn),
-{% endif %}
+
         .S_BSCAN_drck(),
         .S_BSCAN_shift(),
         .S_BSCAN_tdi(),
@@ -1693,10 +1746,16 @@ module design_dynamic_wrapper #(
         .S_BSCAN_runtest(),
         .S_BSCAN_reset(),
         .S_BSCAN_capture(),
-        .S_BSCAN_bscanid_en()  
+        .S_BSCAN_bscanid_en(),
+{% if cnfg.en_uclk %}
+        .aclk                   (uclk),
+        .aresetn                (uresetn)
+{% else %}
+        .aclk                   (aclk),
+        .aresetn                (aresetn)
+{% endif %}
     );
 
 {% endfor %}
 	
 endmodule
-	

@@ -104,6 +104,12 @@ switch $cfg(example) {
         }
     }
 
+    "perf_dedup" {
+        puts "Deduplication"
+        add_files "$hw_dir/hdl/operators/examples/dedup/"
+        update_compile_order -fileset sources_1
+    }
+
     default {
         puts "No example chosen"
     }

@@ -19,6 +19,16 @@ if(N_CONFIG GREATER 1 AND NOT EN_PR)
 endif()
 
 ##
+## Mem_Bypass
+##
+if (EN_MEM_BPSS)
+    message("Expose memory interface to user logic. Force flags.")
+    set(EN_MEM 0) # disable TLB memory interfaces
+    set(EN_TCP_0 0) # disable TCP to avoid TCP memory interfaces
+    set(EN_TCP_1 0)
+endif()
+
+##
 ## Network
 ##
 
@@ -72,7 +82,7 @@ if(EN_TCP_0 OR EN_TCP_1)
     set(EN_TCP 1)
 else()
     # Mem
-    if(EN_MEM)
+    if(EN_MEM OR EN_MEM_BPSS)
         if(AV_DDR)
             set(EN_DCARD 1)
             set(EN_HCARD 0)
@@ -140,6 +150,10 @@ endif()
 if(EN_TCP)
     MATH(EXPR N_MEM_CHAN "${N_TCP_CHAN} + ${N_MEM_CHAN}")
 endif()
+if(EN_MEM_BPSS)
+    MATH(EXPR N_MEM_CHAN "${N_REGIONS} * ${N_CARD_AXI}")
+endif(EN_MEM_BPSS)
+
 
 # Most boards only up to 4
 if(EN_DCARD)

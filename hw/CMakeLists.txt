@@ -108,12 +108,16 @@ set(N_STRM_AXI 1 CACHE STRING "Number of host streams.")
 
 # Memory streams
 set(EN_MEM 0 CACHE STRING "Enable memory streams.")
+set(EN_MEM_BPSS 0 CACHE STRING "Expose memory interface to user logic.")
 
 # Number of Memory streams
 set(N_CARD_AXI 1 CACHE STRING "Number of memory streams.")
 
 # HBM split
 set(HBM_SPLIT 0 CACHE STRING "HBM bank splitting.")
+
+# HBM bypass
+set(HBM_BPSS 0 CACHE STRING "HBM bank bypassing (w/o rama ip).")
 
 # Memory channels
 set(N_DDR_CHAN 0 CACHE STRING "Number of DDR channels.")
